@@ -1,0 +1,319 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+/*
+ * Interface fonts, served by the app itself (OFL-1.1 packages from @fontsource-variable, bundled by
+ * Vite and precached). They used to come from Google Fonts on every visit. The browser fetches only
+ * the script subsets a page actually uses.
+ */
+@import "@fontsource-variable/inter/wght.css";
+@import "@fontsource-variable/inter-tight/wght.css";
+@import "@fontsource-variable/jetbrains-mono/wght.css";
+@import "@fontsource-variable/lora/wght.css";
+@import "@fontsource-variable/lora/wght-italic.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Eviota — editorial minimalist design system.
+ * Paper-white canvas, ink typography, one signal red (#de2d1e; --signal-ink for red text/icons/focus),
+ * hairline borders, mono micro-labels, serif reading voice.
+ */
+
+@theme {
+  --font-display:
+    "Inter Tight Variable", "Inter Tight", "Inter Display", "Inter Variable", "Inter",
+    ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Lora Variable", "Lora", "Georgia", serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-signal: var(--signal);
+  --color-signal-foreground: var(--signal-foreground);
+  --color-signal-ink: var(--signal-ink);
+  --color-paper: var(--paper);
+  --color-sepia: var(--sepia);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.375rem;
+  --background: #fdfdfd;
+  --foreground: #0a0a0a;
+  --card: #fdfdfd;
+  --card-foreground: #0a0a0a;
+  --popover: #fdfdfd;
+  --popover-foreground: #0a0a0a;
+  --primary: #0a0a0a;
+  --primary-foreground: #fdfdfd;
+  --secondary: #f2f2f2;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f2f2f2;
+  --muted-foreground: #666666;
+  --accent: #f1f0ed;
+  --accent-foreground: #0a0a0a;
+  --signal: #de2d1e;
+  --signal-foreground: #ffffff;
+  --signal-ink: #de2d1e;
+  --paper: #fdfdfd;
+  --sepia: #f4f1ea;
+  --destructive: #d4351c;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #de2d1e;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #111111;
+  --foreground: #f5f5f5;
+  --card: #181818;
+  --card-foreground: #f5f5f5;
+  --popover: #181818;
+  --popover-foreground: #f5f5f5;
+  --primary: #f5f5f5;
+  --primary-foreground: #111111;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f5;
+  --muted: #1f1f1f;
+  --muted-foreground: #8f8f8f;
+  --accent: #1f1f1f;
+  --accent-foreground: #f5f5f5;
+  --signal: #de2d1e;
+  --signal-foreground: #ffffff;
+  --signal-ink: #ff5541;
+  --paper: #181818;
+  --sepia: #1f1c17;
+  --destructive: #ff5541;
+  --destructive-foreground: #ffffff;
+  --border: #2a2a2a;
+  --input: #333333;
+  --ring: #ff5541;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :root {
+    --reader-hit: rgba(222, 45, 30, 0.28);
+    --reader-hit-strong: rgba(222, 45, 30, 0.28);
+  }
+  .dark {
+    --reader-hit: rgba(255, 85, 65, 0.46);
+    --reader-hit-strong: rgba(255, 85, 65, 0.46);
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--signal-ink) 22%, transparent);
+  }
+
+  /* The matched words of a search hit in a paragraph too long to tint whole (see hit-locate.ts). */
+  ::highlight(eviota-hit) {
+    background-color: var(--reader-hit-strong);
+    color: inherit;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: 3px solid var(--background);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* ---------- utilities ---------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* riffling pages of the book loader */
+@keyframes riffle {
+  0% {
+    transform: rotateY(0deg) scaleX(1);
+    opacity: 0.15;
+  }
+  45% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: rotateY(-160deg) scaleX(0.2);
+    opacity: 0.15;
+  }
+}
+
+@utility anim-rise {
+  animation: rise 0.7s var(--ease-out-expo) both;
+}
+
+@utility anim-fade {
+  animation: rise 0.5s var(--ease-out-expo) both;
+}
+
+@utility cover-shadow {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.06),
+    0 12px 32px -12px oklch(0 0 0 / 0.18);
+}
+
+@utility cover-shadow-hover {
+  box-shadow:
+    0 2px 4px oklch(0 0 0 / 0.08),
+    0 24px 48px -16px oklch(0 0 0 / 0.28);
+}
+
+/* Slim progress slider used in the reader chrome */
+@utility eviota-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  background: color-mix(in oklab, currentColor 15%, transparent);
+  outline: none;
+  cursor: pointer;
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--signal);
+    border: none;
+    transition: transform 0.15s var(--ease-out-expo);
+  }
+  &::-webkit-slider-thumb:hover {
+    transform: scale(1.35);
+  }
+  &::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: var(--signal);
+    border: none;
+  }
+}
+
+/* Dusk reading theme for fixed-layout (comic) pages rendered by foliate */
+.reader-invert foliate-view::part(filter) {
+  filter: invert(0.93) hue-rotate(180deg);
+}
+
+/* pdf.js text layer — invisible, absolutely-positioned spans that make the
+   rendered canvas selectable/copyable and let us map selection rects to pages. */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-align: initial;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 2;
+  opacity: 1;
+  caret-color: currentColor;
+}
+
+.textLayer :is(span, br) {
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  color: transparent;
+  transform-origin: 0 0;
+  margin: 0;
+}
+
+.textLayer span.markedContent {
+  top: 0;
+  height: 0;
+}
+
+.textLayer .endOfContent {
+  position: absolute;
+  inset: 100% 0 0;
+  display: block;
+  cursor: default;
+  user-select: none;
+  z-index: 0;
+}
+
+.textLayer .endOfContent.active {
+  top: 0;
+}
+
+.textLayer ::selection {
+  background: color-mix(in oklab, var(--signal) 45%, transparent);
+}
+
+/* ---------- reduced motion ---------- */
+/*
+ * A person who asked their system for less motion gets no transitions, no entrance animations and
+ * no gliding scroll. `!important` is needed to beat the utility classes (`animate-in`, `transition-*`).
+ * The small loading spinners are the exception: they are the only sign that indexing or text
+ * recognition is still working, and a spinner that has stopped looks like a frozen app.
+ * Scrolls started from script follow the same setting through `smoothScroll()` in lib/motion.ts.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-spin {
+    animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
