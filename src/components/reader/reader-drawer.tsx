@@ -271,7 +271,7 @@ export function ReaderDrawer({
                 aria-label={TAB_META[t].label}
                 title={TAB_META[t].label}
                 className={cn(
-                  "flex h-8 flex-1 items-center justify-center rounded-[3px] transition-colors",
+                  "flex h-8 flex-1 items-center justify-center rounded-[3px] transition-colors pointer-coarse:h-11",
                   t === tab ? "bg-signal text-signal-foreground" : "hover:bg-foreground/5",
                 )}
               >
@@ -284,7 +284,7 @@ export function ReaderDrawer({
           type="button"
           onClick={onClose}
           aria-label="Close drawer"
-          className="flex h-8 w-8 items-center justify-center rounded-[3px] hover:bg-foreground/5"
+          className="flex h-8 w-8 items-center justify-center rounded-[3px] hover:bg-foreground/5 pointer-coarse:h-11 pointer-coarse:w-11"
         >
           <X className="h-4 w-4" />
         </button>

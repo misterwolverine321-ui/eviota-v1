@@ -94,7 +94,8 @@ export const SAFE_CSP = [
   "script-src 'none'",
   "img-src blob: data:",
   "media-src blob: data:",
-  "font-src blob: data:",
+  // 'self' is the app's own bundled fonts (the book's base is blob:, so fonts are same-origin).
+  "font-src 'self' blob: data:",
   "style-src 'unsafe-inline' blob: data:",
   "frame-src blob:",
   "object-src blob:",

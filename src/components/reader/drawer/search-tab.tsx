@@ -163,7 +163,7 @@ export function SearchTab({
 
   const toggleClass = (on: boolean) =>
     cn(
-      "h-6 rounded-[3px] px-2 font-mono text-[11px] tracking-[0.14em] uppercase transition-colors",
+      "h-6 rounded-[3px] px-2 font-mono text-[11px] tracking-[0.14em] uppercase transition-colors pointer-coarse:h-11 pointer-coarse:min-w-11",
       on ? "bg-signal text-signal-foreground" : "hover:bg-foreground/5",
     );
 
@@ -190,7 +190,7 @@ export function SearchTab({
           }}
           placeholder="Search in book"
           autoFocus
-          className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:opacity-40"
+          className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:opacity-40 pointer-coarse:h-11"
           aria-label="Search in book"
         />
         {(query || ran) && (

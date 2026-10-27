@@ -1574,3 +1574,15 @@ The owner approved the logo (the E) and the name (Eviota). The owner then asked 
 
 **Not verified.** Whether the new covers are wanted as the app's look (they replace AI art; the owner may want other artwork). The rest of the list in the checkpoint 24 entry above still applies.
 
+
+## 2026-10-27 — Checkpoint 25: reading-comfort pass
+
+The owner asked for the app to be made perfect for reading comfort, checking whatever the sandbox can measure. The built app was measured, then the numbers that were wrong were fixed.
+
+**Measured first (desktop Chromium; phone and 320 px emulated with touch).** Line length from the book's visible lines: desktop 69 characters median, phone 36, 320 px 28. Body text 17.1:1 in every theme. Axe (WCAG 2.2 AA) found the reader's secondary text failing in Sepia (3.52:1) and Dusk (4.45:1). Reader buttons 32 px on desktop and 40 px on phone; the progress slider 4 px tall; many drawer controls under 44 px on touch. Reduced motion stopped the 9 transitions it applies to. The book frame had no `@font-face` rules, so a book set in Lora used whatever serif the device had.
+
+**Changed.** Secondary text: Sepia `#746853` (4.84:1), Dusk `#8A8A8A` (5.38:1). Touch: 44 px targets on coarse pointers for the reader chrome, the drawers, the sliders and the page field; mouse layouts unchanged. The book now receives the bundled Lora and Inter faces (`src/lib/book-fonts.ts`), and its policy allows `font-src 'self'`, the app's own origin only.
+
+**Checks.** Typecheck 0 errors. `npx vitest run` 799 tests in 81 files, passing (5 new, `tests/unit/book-fonts.test.ts`). Lint 53 errors, 10 warnings (baseline). `npm run build` precaches 72 files; `npm run verify:static` passes. `npm run test:e2e` 145 passing, 1 skipped, 9.6 minutes. Measured after the changes: phone reader controls 0 of 8 under 44 px; drawers 0 under 44 px; sub-text contrast passes in all themes; the reader's axe scan clean in all themes; the book frame loads the Latin Lora face (200).
+
+**Not verified.** Safari/WebKit (the `'self'` font source inside a book frame), a real phone's touch geometry, a device without Lora installed, a screen reader. The borders (1.24 to 1.49:1) and the dark-mode destructive colour (3.17:1) were not changed; see HANDOVER, "Decisions waiting on the owner".

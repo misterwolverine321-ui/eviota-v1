@@ -72,7 +72,7 @@ export function IndexTab({
                   if (single) onNavigate(item.targets[0].href);
                   else if (item.targets.length) setOpen(expanded ? null : id);
                 }}
-                className="w-full rounded px-2 py-1.5 text-left text-sm transition-colors hover:bg-foreground/5"
+                className="w-full rounded px-2 py-1.5 text-left text-sm transition-colors hover:bg-foreground/5 pointer-coarse:min-h-11"
                 style={{
                   paddingLeft: 8 + item.depth * 14,
                   color: item.depth > 0 ? theme.sub : undefined,

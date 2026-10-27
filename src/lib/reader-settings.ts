@@ -24,8 +24,8 @@ export const READER_THEMES: ReaderTheme[] = [
     line: "#E7E7E7",
   },
   { id: "paper", label: "Paper", bg: "#FDFDFD", ink: "#1A1A1A", sub: "#737373", line: "#E7E7E7" },
-  { id: "sepia", label: "Sepia", bg: "#F4F1EA", ink: "#3B332A", sub: "#8B7E6A", line: "#E2D9C8" },
-  { id: "dusk", label: "Dusk", bg: "#131313", ink: "#D9D9D9", sub: "#7C7C7C", line: "#2A2A2A" },
+  { id: "sepia", label: "Sepia", bg: "#F4F1EA", ink: "#3B332A", sub: "#746853", line: "#E2D9C8" },
+  { id: "dusk", label: "Dusk", bg: "#131313", ink: "#D9D9D9", sub: "#8A8A8A", line: "#2A2A2A" },
 ];
 
 /** The single app red; reads the theme token so reader and chrome match. */

@@ -23,6 +23,7 @@ import {
 } from "@/lib/reader-settings";
 import { guardBook } from "@/lib/guard-book";
 import { REDUCED_MOTION_BOOK_CSS } from "@/lib/motion";
+import { bookFontFaces } from "@/lib/book-fonts";
 import { normalizeRange } from "@/lib/normalize-range";
 import {
   guardAuxClick,
@@ -92,6 +93,7 @@ export interface RendererProps {
 /** Stylesheet injected into every book document. */
 const buildCss = (s: ReaderSettings, t: ReaderTheme) => `
 @namespace epub "http://www.idpf.org/2007/ops";
+${bookFontFaces()}
 html, body {
   background: ${t.bg} !important;
   color: ${t.ink} !important;

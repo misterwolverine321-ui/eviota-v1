@@ -95,7 +95,7 @@ export function DisplayTab({
               onClick={() => update({ theme: t.id })}
               aria-pressed={settings.theme === t.id}
               className={cn(
-                "flex-1 rounded-[3px] border px-2 py-2 text-xs font-medium transition-all",
+                "flex-1 rounded-[3px] border px-2 py-2 text-xs font-medium transition-all pointer-coarse:min-h-11",
                 settings.theme === t.id && "ring-2 ring-signal",
               )}
               style={
@@ -122,14 +122,14 @@ export function DisplayTab({
               type="button"
               onClick={tts.prev}
               aria-label="Previous sentence"
-              className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60"
+              className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             >
               <SkipBack className="h-3.5 w-3.5" />
             </button>
             <button
               type="button"
               onClick={tts.toggle}
-              className="flex flex-1 items-center justify-center gap-2 rounded-[2px] px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-60"
+              className="flex flex-1 items-center justify-center gap-2 rounded-[2px] px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-60 pointer-coarse:min-h-11"
             >
               {tts.active && !tts.paused ? (
                 <Pause className="h-3.5 w-3.5" />
@@ -143,7 +143,7 @@ export function DisplayTab({
               type="button"
               onClick={tts.next}
               aria-label="Next sentence"
-              className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60"
+              className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
             >
               <SkipForward className="h-3.5 w-3.5" />
             </button>
@@ -152,7 +152,7 @@ export function DisplayTab({
                 type="button"
                 onClick={tts.stop}
                 aria-label="Stop reading"
-                className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60"
+                className="rounded-[2px] px-2 py-1.5 transition-opacity hover:opacity-60 pointer-coarse:min-h-11 pointer-coarse:min-w-11"
               >
                 <Square className="h-3.5 w-3.5" />
               </button>
@@ -195,7 +195,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={autoScroll.toggle}
-            className="w-full rounded-[3px] border px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-60"
+            className="w-full rounded-[3px] border px-2 py-1.5 text-xs font-medium transition-opacity hover:opacity-60 pointer-coarse:min-h-11"
             style={{
               borderColor: theme.line,
               ...(autoScroll.running ? { background: theme.line } : null),
@@ -468,7 +468,7 @@ export function DisplayTab({
                   onClick={() => update({ comicFit: fit })}
                   aria-pressed={settings.comicFit === fit}
                   className={cn(
-                    "rounded-[3px] border px-2 py-2 text-xs capitalize transition-colors",
+                    "rounded-[3px] border px-2 py-2 text-xs capitalize transition-colors pointer-coarse:min-h-11",
                     settings.comicFit === fit
                       ? "border-signal-ink text-signal-ink"
                       : "hover:bg-foreground/5",
@@ -617,7 +617,7 @@ function Toggle({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex-1 rounded-[3px] border px-2 py-2 font-mono text-[11px] tracking-[0.1em] uppercase transition-colors",
+        "flex-1 rounded-[3px] border px-2 py-2 font-mono text-[11px] tracking-[0.1em] uppercase transition-colors pointer-coarse:min-h-11",
         active ? "border-signal-ink text-signal-ink" : "hover:bg-foreground/5",
       )}
       style={{ borderColor: active ? undefined : theme.line }}

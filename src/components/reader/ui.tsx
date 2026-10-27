@@ -27,7 +27,7 @@ export function IconButton({
       title={label}
       disabled={disabled}
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-signal disabled:opacity-30 sm:h-8 sm:w-8",
+        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-signal disabled:opacity-30 pointer-fine:h-8 pointer-fine:w-8",
         active && "bg-signal text-signal-foreground hover:bg-signal",
       )}
     >
@@ -81,7 +81,7 @@ export function Stepper({
           type="button"
           onClick={onDec}
           aria-label={`Decrease ${label}`}
-          className="flex h-8 w-8 items-center justify-center rounded hover:bg-foreground/5"
+          className="flex h-8 w-8 items-center justify-center rounded hover:bg-foreground/5 pointer-coarse:h-11 pointer-coarse:w-11"
         >
           <Minus className="h-3.5 w-3.5" />
         </button>
@@ -90,7 +90,7 @@ export function Stepper({
             type="button"
             onClick={onReset}
             aria-label={`${value}, reset ${label}`}
-            className="font-mono text-xs tracking-widest tabular-nums"
+            className="font-mono text-xs tracking-widest tabular-nums pointer-coarse:min-h-11 pointer-coarse:min-w-11"
           >
             {value}
           </button>
@@ -104,7 +104,7 @@ export function Stepper({
           type="button"
           onClick={onInc}
           aria-label={`Increase ${label}`}
-          className="flex h-8 w-8 items-center justify-center rounded hover:bg-foreground/5"
+          className="flex h-8 w-8 items-center justify-center rounded hover:bg-foreground/5 pointer-coarse:h-11 pointer-coarse:w-11"
         >
           <Plus className="h-3.5 w-3.5" />
         </button>
@@ -143,7 +143,7 @@ export function Segments<T extends string>({
           onClick={() => onChange(opt)}
           aria-pressed={value === opt}
           className={cn(
-            "flex-1 rounded-[3px] border px-2 py-2 text-xs capitalize transition-colors",
+            "flex-1 rounded-[3px] border px-2 py-2 text-xs capitalize transition-colors pointer-coarse:min-h-11",
             value === opt ? "border-signal-ink text-signal-ink" : "hover:bg-foreground/5",
           )}
           style={{

@@ -963,7 +963,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         style={{ background: `${theme.bg}f2`, borderColor: theme.line }}
       >
         <BackLink
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal sm:h-8 sm:w-8"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal pointer-fine:h-8 pointer-fine:w-8"
           aria-label="Back to library"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -1026,7 +1026,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
                 const page = Number(e.target.value);
                 if (page >= 1 && page <= pageCount) navRef.current?.goToPage?.(page);
               }}
-              className="h-7 w-16 shrink-0 rounded-[3px] border bg-transparent px-2 font-mono text-[11px] tabular-nums outline-none"
+              className="h-11 w-16 shrink-0 rounded-[3px] border bg-transparent px-2 font-mono text-[11px] tabular-nums outline-none pointer-fine:h-7"
               style={{ borderColor: theme.line }}
               aria-label="Go to page"
             />
@@ -1036,7 +1036,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
               max={pageCount}
               value={Math.min(currentPage, pageCount)}
               onChange={(e) => navRef.current?.goToPage?.(Number(e.target.value))}
-              className="accent-signal h-1 min-w-0 flex-1 cursor-pointer"
+              className="accent-signal h-11 min-w-0 flex-1 cursor-pointer"
               aria-label="Page position"
               aria-valuetext={`Page ${Math.min(currentPage, pageCount)} of ${pageCount}`}
             />
@@ -1048,7 +1048,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
             max={1000}
             value={Math.round((status.fraction ?? 0) * 1000)}
             onChange={(e) => navRef.current?.goToFraction?.(Number(e.target.value) / 1000)}
-            className="accent-signal h-1 min-w-0 flex-1 cursor-pointer"
+            className="accent-signal h-11 min-w-0 flex-1 cursor-pointer"
             aria-label="Reading position"
             aria-valuetext={`${pct}% read`}
           />

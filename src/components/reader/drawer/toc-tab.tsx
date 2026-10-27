@@ -33,7 +33,7 @@ function TocList({
           <button
             type="button"
             onClick={() => onNavigate(item.href)}
-            className="w-full rounded px-2 py-1.5 text-left text-sm transition-colors hover:bg-foreground/5"
+            className="w-full rounded px-2 py-1.5 text-left text-sm transition-colors hover:bg-foreground/5 pointer-coarse:min-h-11"
             style={{
               paddingLeft: 8 + depth * 14,
               color: depth > 0 ? theme.sub : undefined,

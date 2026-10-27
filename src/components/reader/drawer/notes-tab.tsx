@@ -136,7 +136,7 @@ export function NotesTab({
             onClick={() => setFilter(f.id)}
             aria-pressed={filter === f.id}
             className={cn(
-              "hover:bg-foreground/5 flex-1 rounded-[3px] border px-1 py-1.5 font-mono text-[11px] tracking-[0.1em] uppercase transition-colors",
+              "hover:bg-foreground/5 flex-1 rounded-[3px] border px-1 py-1.5 font-mono text-[11px] tracking-[0.1em] uppercase transition-colors pointer-coarse:min-h-11",
               filter === f.id && "border-signal-ink text-signal-ink",
             )}
             style={{ borderColor: filter === f.id ? undefined : theme.line }}
