@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import { waitForApp } from "./ready";
 import { CBZ_PAGES, makeSampleCbz, makeTocEpub } from "./fixtures";
 
@@ -28,6 +28,22 @@ test.use({
 
 async function ready(page: Page) {
   await waitForApp(page);
+}
+
+/** The targets under `min` CSS px, as "label: WxH", so one assertion prints every one of them. */
+async function smallTargets(targets: Locator[], min = 44): Promise<string[]> {
+  const small: string[] = [];
+  for (const target of targets) {
+    const box = await target.boundingBox();
+    if (!box) continue; // not shown
+    if (box.width < min - 0.5 || box.height < min - 0.5) {
+      const label = await target.evaluate(
+        (el) => el.getAttribute("aria-label") ?? el.textContent?.trim().slice(0, 30) ?? el.tagName,
+      );
+      small.push(`${label}: ${Math.round(box.width)}x${Math.round(box.height)}`);
+    }
+  }
+  return small;
 }
 
 /** How far the page extends past the screen sideways, in CSS pixels. */
@@ -100,6 +116,34 @@ test.describe("on a phone", () => {
     await expect(page.locator("#collections-panel")).toBeVisible();
   });
 
+  test("the drawer's tabs and controls are thumb-sized", async ({ page }) => {
+    await page.goto("/");
+    await ready(page);
+    await page.setInputFiles('input[type="file"]', [makeTocEpub()]);
+    const link = page.getByRole("link", { name: /contents probe/i });
+    await expect(link).toBeVisible({ timeout: 30_000 });
+    await openFromShelf(link);
+    await expect(page.getByRole("navigation", { name: "Reading controls" })).toBeVisible({
+      timeout: 30_000,
+    });
+    const bar = page.getByRole("banner");
+    const small: string[] = [];
+    for (const name of ["Contents", "Notes", "Search", "Display"]) {
+      await bar.getByRole("button", { name, exact: true }).tap();
+      const drawer = page.getByRole("dialog");
+      await expect(drawer).toBeVisible();
+      const targets = [
+        ...(await drawer.getByRole("tab").all()),
+        ...(await drawer.getByRole("button").all()),
+        ...(await drawer.getByRole("slider").all()),
+      ];
+      small.push(...(await smallTargets(targets)).map((s) => `${name} drawer, ${s}`));
+      await drawer.getByRole("button", { name: "Close drawer" }).tap();
+      await expect(drawer).toBeHidden();
+    }
+    expect(small, "drawer controls smaller than 44 x 44 CSS px").toEqual([]);
+  });
+
   test("the reader's bars are thumb-sized and a tap turns the page", async ({ page }) => {
     await page.goto("/");
     await ready(page);
@@ -111,24 +155,15 @@ test.describe("on a phone", () => {
     const controls = page.getByRole("navigation", { name: "Reading controls" });
     await expect(controls).toBeVisible({ timeout: 30_000 });
 
-    // The icon buttons are 40 px on a phone. Anything under 24 px would fail WCAG 2.2's minimum
-    // target size (2.5.8); 40 is the size the design chose and what is asserted here.
-    const buttons = [
+    // On a touch screen the reader's buttons and sliders are 44 px, the comfortable target size
+    // (WCAG 2.2, 2.5.5). The AA minimum is 24 px (2.5.8); a mouse keeps 32 px and is not tested here.
+    const targets = [
       ...(await controls.getByRole("button").all()),
+      ...(await controls.getByRole("slider").all()),
       ...(await page.getByRole("banner").getByRole("button").all()),
       page.getByRole("banner").getByRole("link", { name: "Back to library" }),
     ];
-    const small: string[] = [];
-    for (const button of buttons) {
-      const box = await button.boundingBox();
-      if (!box) continue;
-      if (box.width < 40 - 0.5 || box.height < 40 - 0.5) {
-        small.push(
-          `${await button.evaluate((el) => el.getAttribute("aria-label"))}: ${Math.round(box.width)}x${Math.round(box.height)}`,
-        );
-      }
-    }
-    expect(small, "reader buttons smaller than 40 x 40 CSS px").toEqual([]);
+    expect(await smallTargets(targets), "reader controls smaller than 44 x 44 CSS px").toEqual([]);
 
     const slider = controls.getByRole("slider", { name: "Reading position" });
     const before = await slider.getAttribute("aria-valuetext");
