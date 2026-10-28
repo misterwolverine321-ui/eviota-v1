@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 /**
- * Search-index worker (Phase 4.1).
+ * Search-index worker.
  *
  * Pure compute: it never touches IndexedDB and never loads a decoder. The
  * kernel streams already-extracted page text in and gets back an inverted

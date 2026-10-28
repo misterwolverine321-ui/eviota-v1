@@ -20,27 +20,27 @@ export interface BookRecord {
   hasCover: boolean;
   cover?: Blob;
   progress?: BookProgress | null;
-  /** Phase 6.1: resolved / user-chosen charset for plain-text sources. */
+  /** Resolved / user-chosen charset for plain-text sources. */
   encoding?: string;
-  /** Phase 6.2: prefer the extracted article body for saved web pages. */
+  /** Prefer the extracted article body for saved web pages. */
   cleanView?: boolean;
   /**
    * §6.4: run OCR over image-only pages (comics / scans) to build a text layer.
    * Opt-in per book — OCR of a 200-page scan is minutes of CPU.
    */
   ocrEnabled?: boolean;
-  /** Phase 7.2: free-form tags used by the library filter chips. */
+  /** Free-form tags used by the library filter chips. */
   tags?: string[];
-  /** Phase 7.3: source blob dropped to free space; record + progress kept. */
+  /** Source blob dropped to free space; record + progress kept. */
   blobEvicted?: boolean;
-  /** Phase 15.3: comic series name (ComicInfo.xml sidecar or file name). */
+  /** Comic series name (ComicInfo.xml sidecar or file name). */
   series?: string;
   /** Issue number within the series; may be fractional. */
   seriesIndex?: number;
   /** Total issues in the series, when the sidecar declares it. */
   seriesTotal?: number;
   /**
-   * Phase 15.5: per-book sharp-zoom override. Undefined follows the global
+   * Per-book sharp-zoom override. Undefined follows the global
    * reader setting; a scan that needs more (or no) upscaling keeps its own.
    */
   sharpZoom?: boolean;
@@ -69,25 +69,25 @@ export function getDb(): Promise<IDBPDatabase> {
           db.createObjectStore("files"); // id -> Blob
         }
         if (oldVersion < 2) {
-          // Phase 2: highlights, notes and bookmarks, anchored per book.
+          // Highlights, notes and bookmarks, anchored per book.
           const store = db.createObjectStore("annotations", { keyPath: "id" });
           store.createIndex("bookId", "bookId");
         }
         if (oldVersion < 3) {
-          // Phase 4.1: persisted per-book search index. The heavy postings blob
+          // Persisted per-book search index. The heavy postings blob
           // lives in `searchIndex`; `searchMeta` holds the cheap status record
           // so the UI can read build state without deserializing the index.
           db.createObjectStore("searchIndex", { keyPath: "bookId" });
           db.createObjectStore("searchMeta", { keyPath: "bookId" });
         }
         if (oldVersion < 4) {
-          // Phase 7: reading sessions and collections.
+          // Reading sessions and collections.
           const sessions = db.createObjectStore("sessions", { keyPath: "id" });
           sessions.createIndex("bookId", "bookId");
           db.createObjectStore("collections", { keyPath: "id" });
         }
         if (oldVersion < 5) {
-          // Phase 10: deletion tombstones so a sync merge can tell "never had
+          // Deletion tombstones so a sync merge can tell "never had
           // it" from "deleted it here". Keyed by the deleted record's id.
           const tombs = db.createObjectStore("tombstones", { keyPath: "id" });
           tombs.createIndex("bookId", "bookId");
@@ -189,7 +189,7 @@ export async function patchBook(id: string, patch: Partial<BookRecord>): Promise
 }
 
 /**
- * Replace a book's file blob in place (Phase 4 page ops).
+ * Replace a book's file blob in place.
  * Keeps the record id stable so annotations and progress survive.
  */
 export async function putBookFile(id: string, file: Blob): Promise<void> {

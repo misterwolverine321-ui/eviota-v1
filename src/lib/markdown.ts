@@ -2,7 +2,7 @@ import { marked } from "marked";
 import type { TocItem } from "./reader-settings";
 
 /**
- * Phase 6 — Markdown as a first-class format.
+ * Markdown as a first-class format.
  *
  * Markdown reuses the HTML engine rather than adding a sixth renderer: we
  * convert to HTML here, give every heading a stable id so the Contents tab can

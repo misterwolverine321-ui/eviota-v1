@@ -15,7 +15,7 @@ import { REAL_PAIRS } from "./fixtures/old-annotations";
 
 /**
  * Old triple-click marks are repaired the first time anything reads them, and the repair is
- * written back so it happens once. The records are the real ones from the checkpoint-8 build.
+ * written back so it happens once. The records are the real ones from an earlier build.
  */
 
 beforeAll(() => {

@@ -3,7 +3,7 @@ import { Flame } from "lucide-react";
 import { computeStats, formatDuration, listSessions, type ReadingSession } from "@/lib/sessions";
 
 /**
- * Phase 7.1 — compact reading stats strip: streak, today, all-time, pace and
+ * Compact reading stats strip: streak, today, all-time, pace and
  * a 30-day sparkline. Renders nothing until at least one session exists so a
  * fresh library isn't dominated by zeroes.
  */

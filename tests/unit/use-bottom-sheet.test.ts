@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useBottomSheet } from "@/hooks/use-mobile";
 
 /**
- * Whether the reader's drawer is a bottom sheet or a side rail (checkpoint 21). A phone held upright
+ * Whether the reader's drawer is a bottom sheet or a side rail. A phone held upright
  * gets the sheet; a screen that is narrow but short (a phone on its side) would have a sheet of 72%
  * of a 320 px height, which leaves no room for a first result, so it gets the rail like a wide one.
  * jsdom has no media queries: the two queries the hook reads are answered by a stub.

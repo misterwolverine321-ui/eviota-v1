@@ -1,5 +1,5 @@
 /**
- * Phase 4.3 (foliate half): the flattened section text and its node map must
+ * For reflowable documents: the flattened section text and its node map must
  * round-trip a selection through offsets and back to a DOM range.
  */
 // @vitest-environment jsdom

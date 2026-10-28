@@ -1,5 +1,5 @@
 /**
- * Phase 6.2: clean reading view for saved web pages.
+ * Clean reading view for saved web pages.
  *
  * Mozilla Readability needs a real DOM `Document`, which Web Workers do not
  * provide (no `DOMParser`, no `document`). Rather than ship a DOM shim into a

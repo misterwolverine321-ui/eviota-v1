@@ -4,10 +4,10 @@ import { makeTocEpub } from "./fixtures";
 
 /**
  * Above the shelf's books sit the hero (or "Your shelf"), the stats, the search and sort row, and the
- * index line. They appear only once the books and sessions have loaded from IndexedDB. Before
- * checkpoint 26 the books below them jumped down when they appeared: layout shift 0.26 on an empty
- * first visit and 0.57 on a phone. The app now draws an empty box of the height that region had on
- * this device the last time (src/lib/shelf-top-height.ts), so the shelf should not move at all.
+ * index line. They appear only once the books and sessions have loaded from IndexedDB. Before the
+ * app reserved that space, the books below them jumped down when they appeared: layout shift 0.26 on
+ * an empty first visit and 0.57 on a phone. The app now draws an empty box of the height that region
+ * had on this device the last time (src/lib/shelf-top-height.ts), so the shelf should not move at all.
  *
  * The main check is on the position itself: the shelf's column must sit at one height on every frame
  * from first paint on. That is deterministic, where a layout-shift score can read zero by timing.

@@ -43,8 +43,8 @@ const centredContent: React.CSSProperties = {
 };
 
 /**
- * Comic engine (CBZ / CBR / CB7): libarchive.js extraction plus a Phase 5
- * viewer — smart fit, spread splitting, manga (RTL) order and a worker-backed
+ * Comic engine (CBZ / CBR / CB7): libarchive.js extraction plus a viewer —
+ * smart fit, spread splitting, manga (RTL) order and a worker-backed
  * brightness / contrast / sharpen pass. The kernel owns every setting; this
  * component only reads them.
  */
@@ -94,7 +94,7 @@ export function ComicReader({
     annotations: false as const,
     search: ocr,
     spread: true,
-    // Phase 5: worker-backed brightness/contrast/sharpen + manga RTL.
+    // Worker-backed brightness/contrast/sharpen + manga RTL.
     imageAdjust: true,
     rtl: true,
     // §6.4: the engine can build a text layer from the pixels on request.
@@ -422,7 +422,7 @@ export function ComicReader({
     };
   }, [panels, index, step, adjust]);
 
-  // Phase 15 — sharp zoom. Once the zoom settles we re-render the visible
+  // Sharp zoom. Once the zoom settles we re-render the visible
   // pages at their true device-pixel size with a Lanczos resample + unsharp
   // pass, so magnified text keeps hard edges instead of the browser's blur.
   const [sharp, setSharp] = useState<Record<string, string>>({});

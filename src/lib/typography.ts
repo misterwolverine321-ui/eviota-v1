@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { ReaderSettings } from "@/lib/reader-settings";
 
 /**
- * Shared reflowable-text typography (Phase 15 §13.2).
+ * Shared reflowable-text typography.
  *
  * The EPUB engine injects its own stylesheet into foliate's shadow renderer, so
  * it builds these rules inline. The TXT/HTML/Markdown engines render their own

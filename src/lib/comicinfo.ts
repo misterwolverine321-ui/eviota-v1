@@ -1,5 +1,5 @@
 /**
- * Phase 15.3 — ComicInfo.xml metadata + series stacking.
+ * ComicInfo.xml metadata + series stacking.
  *
  * Comic archives (CBZ/CBR/CB7) commonly carry a `ComicInfo.xml` sidecar with
  * the series name, issue number and credits. Parsing is pure and string-based

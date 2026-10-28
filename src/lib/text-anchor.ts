@@ -1,5 +1,5 @@
 /**
- * Phase 4.3 — self-healing text-offset anchors.
+ * Self-healing text-offset anchors.
  *
  * A rect anchor pins a highlight to pixels, so it breaks as soon as a page is
  * rotated, reordered or re-flattened. A text anchor pins it to the page's text

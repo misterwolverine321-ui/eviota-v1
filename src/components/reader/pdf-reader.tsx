@@ -518,7 +518,7 @@ export function PdfReader({
         annotations: "page-rect",
         // Text layer search across every page.
         search: true,
-        // Phase 4: rotate / reorder / delete / extract / merge / split / export.
+        // Rotate / reorder / delete / extract / merge / split / export.
         pageOps: true,
         // Night mode for scans + auto-trim margins.
         imageAdjust: true,

@@ -13,8 +13,8 @@ import {
 } from "./fixtures";
 
 /**
- * A search hit has to bring the reader to the match, not to the start of whatever holds it
- * (checkpoint 21). The files here are long and have one thing to find at the very end:
+ * A search hit has to bring the reader to the match, not to the start of whatever holds it. The
+ * files here are long and have one thing to find at the very end:
  *  - a book with a single section (an EPUB, FictionBook) has nothing but an offset to go by;
  *  - plain text, RTF, Markdown and HTML have no sections at all and are searched from the shelf
  *    through an index cut into units of text;

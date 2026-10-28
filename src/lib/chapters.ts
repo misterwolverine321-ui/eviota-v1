@@ -1,7 +1,7 @@
 import type { TocItem } from "./reader-settings";
 
 /**
- * Phase 6 — synthetic chapter detection for structureless text.
+ * Synthetic chapter detection for structureless text.
  *
  * Plain text carries no navigation document, so we infer one. A ladder of
  * patterns is tried in order of confidence; the first that yields enough

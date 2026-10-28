@@ -3,7 +3,7 @@ import { Plus, X } from "lucide-react";
 import { normalizeTags } from "@/lib/collections";
 
 /**
- * Phase 7.2 — inline tag editing for a single book, used on the book card.
+ * Inline tag editing for a single book, used on the book card.
  */
 export function TagEditor({
   tags,

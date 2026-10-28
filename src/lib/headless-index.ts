@@ -6,7 +6,7 @@ import { sectionLabeller } from "./section-labels";
 import { ensureIndex, INDEX_VERSION, readIndex, sweepOrphanIndexes } from "./search-index";
 
 /**
- * Shelf search over books that have never been opened (checkpoint 17, the P0 item).
+ * Shelf search over books that have never been opened.
  *
  * The reader builds a book's search index while the book is open, from its own engine. This module
  * builds the same index without the reader: it opens the file the way import already does and

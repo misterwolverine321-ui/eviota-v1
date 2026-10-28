@@ -63,7 +63,7 @@ function legacyBackup(bookId: string): Blob {
   return nodeBlob(zipped);
 }
 
-describe("backups written before the Folio → Nawiri rename", () => {
+describe("backups written under earlier app names", () => {
   it("still restore: book, file, annotation and settings all land", async () => {
     const result = await importBackup(legacyBackup("legacy-1"));
     expect(result.manifest.app).toBe("folio");

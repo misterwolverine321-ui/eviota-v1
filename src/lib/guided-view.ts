@@ -1,5 +1,5 @@
 /**
- * Phase 15.4 — guided view (panel-by-panel reading).
+ * Guided view (panel-by-panel reading).
  *
  * Comic pages are laid out as panels separated by light gutters. Detection is a
  * recursive projection split: find rows (or columns) that are almost entirely

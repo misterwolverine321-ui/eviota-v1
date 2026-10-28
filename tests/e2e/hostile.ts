@@ -154,8 +154,8 @@ export async function makeLinkPdf(): Promise<string> {
 }
 
 /**
- * The book the old-marks spec restores records into: the same section as the EPUB the real
- * checkpoint-8 marks were made on (same blocks in the same order, so the text offsets and
+ * The book the old-marks spec restores records into: the same section as the EPUB that the real
+ * marks from an earlier build were made on (same blocks in the same order, so the text offsets and
  * the CFIs match the recorded ones), without the hostile parts, which have their own specs.
  */
 export function makeMarkEpub(): string {

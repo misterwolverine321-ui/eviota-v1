@@ -90,11 +90,11 @@ export interface ReaderSettings {
   contrast: number;
   /** Image pipeline: unsharp amount, 0..100 (0 = off). */
   sharpen: number;
-  /** Phase 15: resample pages at the zoomed size so text stays crisp. */
+  /** Resample pages at the zoomed size so text stays crisp. */
   enhance: boolean;
-  /** Phase 15: unsharp strength applied after an upscale, 0..100. */
+  /** Unsharp strength applied after an upscale, 0..100. */
   enhanceAmount: number;
-  /** Phase 15.4: comics — step through detected panels instead of whole pages. */
+  /** Comics — step through detected panels instead of whole pages. */
   guidedView: boolean;
   /** Reflowable text: paragraph alignment. */
   textAlign: "start" | "justify";
@@ -257,18 +257,18 @@ export interface NavApi {
   goTo?: (href: string) => void;
   goToFraction?: (fraction: number) => void;
   goToPage?: (page: number) => void;
-  /** Jump to an annotation anchor (Phase 2). */
+  /** Jump to an annotation anchor. */
   goToAnchor?: (anchor: AnnotationAnchor) => void;
   /** Anchor for the current location, used for bookmarks. */
   currentAnchor?: () => AnnotationAnchor | null;
-  /** In-book full-text search (Phase 3). Resolves when the pass is done. */
+  /** In-book full-text search. Resolves when the pass is done. */
   search?: (query: string, run: SearchRun) => Promise<void>;
   /** Drop any in-page search highlighting. */
   clearSearch?: () => void;
   /** Navigate to a hit produced by `search`. */
   goToHit?: (hit: SearchHit) => void;
   /**
-   * Normalized plain text for one page (Phase 4.1 index). Engines that own a
+   * Normalized plain text for one page, for the search index. Engines that own a
    * text layer expose this so the kernel can build a persisted search index
    * without re-implementing extraction.
    */
@@ -291,13 +291,13 @@ export interface NavApi {
   unitLabel?: (page: number) => string;
 
   /**
-   * Render a page preview (Phase 4 thumbnails). Returns a data URL, or null
+   * Render a page preview for thumbnails. Returns a data URL, or null
    * when the page can't be rendered. Engines cache their own results.
    */
   renderThumbnail?: (page: number, width: number) => Promise<string | null>;
 
   /**
-   * Phase 12: nudge the reading surface by `pixels` with no animation, so the
+   * Nudge the reading surface by `pixels` with no animation, so the
    * auto-scroll drive can move the page a fraction of a line at a time.
    * Paginated engines accumulate the pixels and turn the page when a screenful
    * has gone by.
@@ -305,7 +305,7 @@ export interface NavApi {
   scrollByPixels?: (pixels: number) => void;
 
   /**
-   * Phase 12: paint the sentence currently being read aloud, or clear the
+   * Paint the sentence currently being read aloud, or clear the
    * painted sentence when passed `null`. Engines resolve the sentence inside
    * whichever document they own (scroll container, iframe, foliate section).
    */
@@ -367,11 +367,11 @@ export interface RendererCaps {
   ocr?: boolean;
   /** Continuous zoom control. */
   zoom?: boolean;
-  /** `NavApi.renderThumbnail` is implemented (Phase 4 thumbnail rail). */
+  /** `NavApi.renderThumbnail` is implemented (thumbnail rail). */
   thumbnails?: boolean;
 
   /**
-   * Phase 6.1: the engine decodes raw bytes and accepts a charset override.
+   * The engine decodes raw bytes and accepts a charset override.
    * `label` is what was used, `detected` what sniffing chose on its own.
    */
   encoding?: { label: string; detected: string; confidence: number };
@@ -393,7 +393,7 @@ export interface RendererCaps {
   pageCount?: number;
 
   /**
-   * Phase 6.2: the engine extracted an article body and can render a clean
+   * The engine extracted an article body and can render a clean
    * reading view. Gates the Display tab's "Reading view" control.
    */
   cleanView?: boolean;

@@ -1,5 +1,5 @@
 /**
- * Image adjust worker (Phase 5).
+ * Image adjust worker.
  *
  * Applies brightness/contrast (LUT) and an unsharp 3x3 convolution to a
  * decoded bitmap on an OffscreenCanvas, off the main thread. Returns a PNG
@@ -13,13 +13,13 @@ export interface AdjustOptions {
   contrast: number;
   /** Unsharp amount, 0..100. */
   sharpen: number;
-  /** Phase 15: resample the source to this device-pixel size before adjusting. */
+  /** Resample the source to this device-pixel size before adjusting. */
   scaleTo?: { w: number; h: number };
-  /** Phase 15: unsharp amount applied after an upscale, 0..100. */
+  /** Unsharp amount applied after an upscale, 0..100. */
   enhance?: number;
 }
 
-// --------------------------------------------------------- Phase 15: resample --
+// --------------------------------------------------------- Resample --
 
 const LANCZOS_A = 3;
 
@@ -239,7 +239,7 @@ async function run(bitmap: ImageBitmap, opts: AdjustOptions): Promise<Blob> {
   let w = sw;
   let h = sh;
 
-  // Phase 15: high-quality upscale before any tonal work, so the LUT and the
+  // High-quality upscale before any tonal work, so the LUT and the
   // unsharp pass operate on the pixels that actually reach the screen.
   if (opts.scaleTo && opts.scaleTo.w > sw) {
     w = Math.round(opts.scaleTo.w);

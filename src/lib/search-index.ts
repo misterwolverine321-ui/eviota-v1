@@ -5,7 +5,7 @@ import type { IndexShape } from "@/workers/search-index.worker";
 import { emptyIndex } from "@/workers/search-index.worker";
 
 /**
- * Persisted per-book search index (Phase 4.1) with incremental maintenance.
+ * Persisted per-book search index with incremental maintenance.
  *
  * The heavy work is split three ways:
  *  - pdf.js extracts page text in its own worker (`extract` callback),

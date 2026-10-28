@@ -3,7 +3,7 @@ import { getDb, recordTombstone } from "./db";
 import type { TextAnchorData } from "./text-anchor";
 
 /**
- * Annotation model (Phase 2).
+ * Annotation model.
  *
  * Engines never touch persistence — they emit *anchors* (a CFI for reflowable
  * text, page + normalized rects for paged images) and the kernel writes them
@@ -42,7 +42,7 @@ export interface NormRect {
 export type AnnotationAnchor =
   | { kind: "cfi"; cfi: string }
   | { kind: "rect"; page: number; rects: NormRect[] }
-  /** Phase 4.3: offsets into the page text, self-healing via quote + context. */
+  /** Offsets into the page text, self-healing via quote + context. */
   | TextAnchorData;
 
 export interface Annotation {

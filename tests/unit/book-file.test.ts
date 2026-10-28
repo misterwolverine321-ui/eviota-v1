@@ -4,8 +4,8 @@ import { asNamedFile } from "@/lib/book-file";
 
 /**
  * A restored backup stores each book as a plain Blob, which has no name, and
- * foliate-js reads `file.name` to decide how to open a book. Found in Chromium
- * (checkpoint 10): after "Restore from file" every EPUB said "Couldn't open this
+ * foliate-js reads `file.name` to decide how to open a book. Found in Chromium:
+ * after "Restore from file" every EPUB said "Couldn't open this
  * file" (`Cannot read properties of undefined (reading 'endsWith')`) while the
  * PDF, which is read by its bytes, still opened.
  */

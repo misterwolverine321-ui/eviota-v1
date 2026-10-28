@@ -7,7 +7,7 @@ import type { ReaderTheme } from "@/lib/reader-settings";
 
 /**
  * Found by the Playwright spec "rotate rewrites the page and keeps the rail
- * intact" (checkpoint 10): page 1's thumbnail stayed a grey placeholder while
+ * intact": page 1's thumbnail stayed a grey placeholder while
  * pages 2-4 rendered. reader-shell passes a *new* `renderThumbnail` function on
  * every render, so the rail's render effect re-ran while page 1 was still being
  * drawn. The old run was cancelled, its result thrown away, and page 1 was

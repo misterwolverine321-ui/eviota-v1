@@ -5,7 +5,7 @@ const HEARTBEAT_MS = 15_000;
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"] as const;
 
 /**
- * Phase 7.1 — opens a reading session for the mounted book and returns a
+ * Opens a reading session for the mounted book and returns a
  * reporter the kernel calls on every progress update.
  *
  * The tracker itself is pure-ish (see `sessions.ts`); this hook only owns the

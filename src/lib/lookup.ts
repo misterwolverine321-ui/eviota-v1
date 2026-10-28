@@ -1,5 +1,5 @@
 /**
- * Dictionary / encyclopedia lookup (Phase 12).
+ * Dictionary / encyclopedia lookup.
  *
  * Wiktionary's REST definition endpoint first; when the word has no entry we
  * fall back to a Wikipedia summary, which covers names, places and jargon.

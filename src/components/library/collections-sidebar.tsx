@@ -29,9 +29,9 @@ interface Props {
 }
 
 /**
- * Phase 7.2 — collections rail plus the tag chip row. A cover dragged from the
+ * Collections rail plus the tag chip row. A cover dragged from the
  * shelf can be dropped straight onto a collection to file it.
- * Phase 7.4 — smart collections (computed membership) get a distinct icon and
+ * Smart collections (computed membership) get a distinct icon and
  * reject drops, and a Status facet row filters by derived reading state.
  */
 export function CollectionsSidebar({

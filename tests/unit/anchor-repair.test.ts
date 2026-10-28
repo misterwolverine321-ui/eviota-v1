@@ -4,7 +4,7 @@ import type { Annotation } from "@/lib/annotations";
 import { REAL_PAIRS } from "./fixtures/old-annotations";
 
 /**
- * Checkpoint 8 and earlier stored a triple-click selection with the end of the NEXT
+ * Earlier builds stored a triple-click selection with the end of the NEXT
  * paragraph: `anchor.end`, `quote` and `suffix` ran on while `text` (the raw selection)
  * stayed right. `REAL_PAIRS` are records copied from backups made by that real build and by
  * the current build from the same gestures on the same file, so the expected values below

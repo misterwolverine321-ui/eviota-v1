@@ -1,5 +1,5 @@
 /**
- * Page-op failure classification (Phase 4).
+ * Page-op failure classification.
  *
  * pdf-lib, IndexedDB and the browser all fail with wildly different messages.
  * The kernel funnels every page-op rejection through here so the toast can say

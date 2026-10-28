@@ -13,9 +13,9 @@ interface Props {
   book: BookRecord;
   onDelete: (id: string) => void;
   index: number;
-  /** Phase 7.1: trailing-rate estimate of reading time left, if confident. */
+  /** Trailing-rate estimate of reading time left, if confident. */
   remainingMinutes?: number | null;
-  /** Phase 7.2: omit to hide inline tag editing (e.g. in compact views). */
+  /** Omit to hide inline tag editing (e.g. in compact views). */
   onTagsChange?: (id: string, tags: string[]) => void;
 }
 

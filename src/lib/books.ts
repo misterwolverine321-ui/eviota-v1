@@ -7,7 +7,7 @@ export interface ExtractedMeta {
   title: string;
   author: string;
   cover?: Blob;
-  /** Phase 15.3: comic series info, when the file is a comic archive. */
+  /** Comic series info, when the file is a comic archive. */
   series?: string;
   seriesIndex?: number;
   seriesTotal?: number;

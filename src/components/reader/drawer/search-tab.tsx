@@ -9,7 +9,7 @@ import { EmptyState } from "../ui";
 const DEBOUNCE_MS = 150;
 
 /**
- * Search tab: in-book full-text search (Phase 3 + 4.2 UX).
+ * Search tab: in-book full-text search.
  *
  * Typing runs a debounced pass; Enter / Shift+Enter step through the hit list;
  * the match-case and whole-word toggles persist in reader settings and travel

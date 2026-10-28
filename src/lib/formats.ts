@@ -5,7 +5,7 @@ export type ReaderKind =
   | "html"
   | "comic" // cbz, cbr, cb7 via libarchive
   | "djvu" // djvu, djv: opened by the djvu-rs engine (src/workers/djvu.worker.ts)
-  | "chm" // compiled HTML help: recognised and kept, no decoder is shipped (see HANDOVER)
+  | "chm" // compiled HTML help: recognised and kept, no decoder is shipped
   | "unsupported";
 
 export type FormatCategory = "book" | "comic" | "doc" | "web";

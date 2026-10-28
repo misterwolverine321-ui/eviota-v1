@@ -115,7 +115,7 @@ function RootComponent() {
     if (benchRequested(window.location.search)) {
       void import("@/lib/bench").then((m) => m.installBench());
     }
-    // Phase 13: offline shell. Production builds only — see lib/pwa.
+    // Offline shell. Production builds only — see lib/pwa.
     registerServiceWorker();
     // Last, so that everything this effect starts has been started when the tests see it.
     markAppReady();

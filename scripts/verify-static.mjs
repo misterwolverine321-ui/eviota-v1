@@ -99,10 +99,10 @@ check(
 );
 
 // ---- no copyleft text ships without being looked at ------------------------------
-// DjVu.js (GNU General Public License, Version 2) was removed from the site in checkpoint 14 because
-// it could not sit next to the Apache-2.0 parts. A file in the built site that names a copyleft
-// licence in words, other than the notices file (which quotes them), has to be looked at by a
-// person: add its entry to scripts/make-notices.mjs and ask the owner. Only text files are read, and
+// DjVu.js (GNU General Public License, Version 2) was removed from the site because it could not sit
+// next to the Apache-2.0 parts. A file in the built site that names a copyleft licence in words, other
+// than the notices file (which quotes them), has to be looked at by a person: add its entry to
+// scripts/make-notices.mjs and ask the maintainer. Only text files are read, and
 // only the licence's name in words is looked for, so binary data and base64 cannot trip it.
 console.log("copyleft");
 const TEXT = new Set([".js", ".css", ".html", ".json", ".txt", ".webmanifest", ".svg", ".map"]);

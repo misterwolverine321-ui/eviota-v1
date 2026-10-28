@@ -1,5 +1,5 @@
 /**
- * Phase 6.1 — encoding detection for plain-text sources.
+ * Encoding detection for plain-text sources.
  *
  * `TextDecoder("utf-8")` silently produces mojibake for the Shift-JIS, GBK and
  * KOI8-R files that make up most legacy plain-text libraries. This module

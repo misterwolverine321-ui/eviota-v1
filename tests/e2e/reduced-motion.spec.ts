@@ -4,7 +4,7 @@ import { waitForApp } from "./ready";
 
 /**
  * A person who asked their system for less motion gets jumps instead of glides and no transitions
- * (checkpoint 22, audit 7.1). Every test runs with the setting on ("reduce") and, as a control that
+ * Every test runs with the setting on ("reduce") and, as a control that
  * the test can see motion at all, with it off ("no-preference").
  *
  * These run in Chromium with the preference emulated (`page.emulateMedia`). A real system setting

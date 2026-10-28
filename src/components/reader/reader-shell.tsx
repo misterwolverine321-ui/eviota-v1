@@ -147,13 +147,13 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
   /** Bumped after a page op so the engine remounts against the new blob. */
   const [engineKey, setEngineKey] = useState(0);
   const [busy, setBusy] = useState(false);
-  /** Phase 6.1: charset override for byte-decoding engines, persisted per book. */
+  /** Charset override for byte-decoding engines, persisted per book. */
   const [encoding, setEncoding] = useState<string | null>(book.encoding ?? null);
-  /** Phase 6.2: clean reading view for saved web pages, persisted per book. */
+  /** Clean reading view for saved web pages, persisted per book. */
   const [cleanView, setCleanView] = useState<boolean>(book.cleanView ?? false);
   /** §6.4: OCR opt-in for image-only books (comics / scans), persisted per book. */
   const [ocrEnabled, setOcrEnabled] = useState<boolean>(book.ocrEnabled ?? false);
-  /** Phase 15.5: per-book sharp-zoom override; undefined follows the global. */
+  /** Per-book sharp-zoom override; undefined follows the global. */
   const [sharpZoom, setSharpZoom] = useState<boolean | undefined>(book.sharpZoom);
   const [sharpAmount, setSharpAmount] = useState<number | undefined>(book.sharpAmount);
   /** Persisted search index for this book, once built. */
@@ -180,7 +180,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
   /** Latest speech controller, readable from callbacks defined above it. */
   const ttsRef = useRef<TtsController | null>(null);
 
-  /** Phase 12: pending dictionary lookup, raised from the selection popover. */
+  /** Pending dictionary lookup, raised from the selection popover. */
   const [define, setDefine] = useState<DefineRequest | null>(null);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -190,7 +190,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
   const chrome = useImmersiveChrome(tab !== null || chromeFocused);
   const safeReport = useSafeReport();
   const sheet = useBottomSheet();
-  /** Phase 7.1: accrues active reading time for the library stats strip. */
+  /** Accrues active reading time for the library stats strip. */
   useWakeLock(true);
   const reportSession = useReadingSession(book.id, book.progress?.fraction ?? 0);
 
@@ -251,7 +251,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
 
   /**
    * What the engine actually reads: the global settings with this book's
-   * sharp-zoom override folded in (Phase 15.5).
+   * sharp-zoom override folded in.
    */
   const engineSettings = useMemo<ReaderSettings>(
     () => ({

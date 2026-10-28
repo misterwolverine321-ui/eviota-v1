@@ -1,5 +1,5 @@
 /**
- * Phase 7.2 — collections and tags (DB v4).
+ * Collections and tags (DB v4).
  *
  * Collections are an explicit, ordered grouping stored in their own object
  * store with a `bookIds` join array; tags are free-form strings on the book
@@ -8,7 +8,7 @@
  */
 import { getDb, patchBook, type BookRecord } from "./db";
 
-/** Phase 7.4 — derived reading state used by the faceted status filter. */
+/** Derived reading state used by the faceted status filter. */
 export type BookStatus = "unread" | "reading" | "finished";
 
 /**

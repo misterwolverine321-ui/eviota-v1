@@ -90,12 +90,12 @@ describe("third-party notices", () => {
     const ui = readdirSync(join(root, "src", "components", "ui")).filter((f) => f.endsWith(".tsx"));
     expect(ui.length).toBeGreaterThan(0);
     expect(entry).toContain(`src/components/ui/ (${ui.length} files, *.tsx)`);
-    // The CHM decoder that used to be listed here is gone (checkpoint 15); nothing is left to describe.
+    // The CHM decoder that used to be listed here is gone; nothing is left to describe.
     expect(entry).not.toContain("src/lib/chm");
     expect(entry).not.toContain("CHMLib");
   });
 
-  it("states the project's own licence the way the owner chose it, and ships both licence files", () => {
+  it("states the project's own licence the way I chose it, and ships both licence files", () => {
     expect(notices).toContain("MIT OR Apache-2.0");
     const mit = readFileSync(join(root, "LICENSE-MIT"), "utf8");
     expect(mit).toContain("Copyright (c) 2026 Eviota Contributors");
@@ -116,9 +116,9 @@ describe("third-party notices", () => {
     expect(notices).not.toContain("public/vendor/djvu");
   });
 
-  it("does not carry the CHM decoder the owner had removed (checkpoint 15), in a path or in a header", () => {
-    // The decoder was, by its own header, a port of GPL-2.0-or-later code. Bringing CHM back is the
-    // owner's decision (a permissively licensed decoder, checked against a real .chm); until then
+  it("does not carry the CHM decoder that was removed, in a path or in a header", () => {
+    // The decoder was, by its own header, a port of GPL-2.0-or-later code. Bringing CHM back is my
+    // decision (a permissively licensed decoder, checked against a real .chm); until then
     // neither the files nor the words that named their source may be in the source tree.
     expect(existsSync(join(root, "src", "lib", "chm"))).toBe(false);
     expect(existsSync(join(root, "src", "lib", "chm.ts"))).toBe(false);
@@ -138,7 +138,7 @@ describe("third-party notices", () => {
     expect(found).toEqual([]);
   });
 
-  it("pins djvu-rs exactly and reproduces the package's own notice unchanged (checkpoint 16)", () => {
+  it("pins djvu-rs exactly and reproduces the package's own notice unchanged", () => {
     const entry = part("PART 8 -", null);
     const dir = join(root, "node_modules", "djvu-rs");
     const version = (
@@ -166,9 +166,9 @@ describe("third-party notices", () => {
     expect(entry).toContain(`djvu-rs ${version}`);
   });
 
-  it("records the djvu-rs author's statement as the owner's screenshot of it, and draws no conclusion", () => {
+  it("records the djvu-rs author's statement as my screenshot of it, and draws no conclusion", () => {
     const entry = part("PART 8 -", null).replace(/\s+/g, " ");
-    expect(entry).toContain("as the owner's screenshot of it shows");
+    expect(entry).toContain("as my screenshot of it shows");
     expect(entry).toContain("the project did not verify it, and it is not an audit");
     expect(entry).toContain("NOT ESTABLISHED BY EVIOTA");
     expect(entry).toContain("any legal conclusion");
@@ -212,7 +212,10 @@ describe("third-party notices", () => {
     );
     // It says what it is and what it is not.
     expect(fallback).toContain("It is a notice, not a finding");
-    expect(fallback).toContain("does not say which branch the file was built from");
+    // The notice is wrapped, so a phrase can cross a line break: compare with spaces.
+    expect(fallback.replace(/\s+/g, " ")).toContain(
+      "does not say which branch the file was built from",
+    );
     // The file's own entry points to it and still says its notices are incomplete.
     const entry = part(
       "public/vendor/libarchive/libarchive.wasm\n",
@@ -222,11 +225,11 @@ describe("third-party notices", () => {
     expect(entry).toContain("INCOMPLETE");
   });
 
-  it("records the owner's decision about the logo concept as the owner's, not as a finding", () => {
+  it("records my decision about the logo concept as mine, not as a finding", () => {
     // The notice is wrapped at 98 columns, so a phrase can cross a line break: compare with spaces.
     const assets = part("PART 6 -", "PART 7 -").replace(/\s+/g, " ");
-    expect(assets).toContain("OWNER'S DECISION, 2026-10-15");
-    expect(assets).toContain("the owner explicitly confirmed and authorized");
+    expect(assets).toContain("MY DECISION, 2026-10-15");
+    expect(assets).toContain("I confirmed and authorised");
     expect(assets).toContain("it is not an independent finding");
     expect(assets).toContain("baseline terms are MIT OR Apache-2.0");
     expect(assets).toContain("was NOT checked here");

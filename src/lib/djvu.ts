@@ -2,7 +2,7 @@
  * DjVu: the page thread's side of the decoder.
  *
  * The decoder is `djvu-rs` (MIT; WebAssembly built from Rust), run in `src/workers/djvu.worker.ts`.
- * It replaces DjVu.js, which was removed in checkpoint 14 because it is distributed under the GNU
+ * It replaces DjVu.js, which was removed because it is distributed under the GNU
  * General Public License, Version 2. This file holds the helpers that need no decoder (tested without
  * a browser) and `DjvuClient`, the small request/answer wrapper around the worker.
  */

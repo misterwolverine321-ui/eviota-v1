@@ -1,5 +1,5 @@
 /**
- * Phase 4.3 (foliate half) — bridge between a book section's DOM and text
+ * Bridge between a book section's DOM and text
  * anchors.
  *
  * `text-anchor.ts` is pure offsets; `pdf-text-map.ts` is the pdf.js text-layer

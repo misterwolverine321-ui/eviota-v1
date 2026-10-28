@@ -6,7 +6,7 @@ import { SearchTab } from "@/components/reader/drawer/search-tab";
 import type { ReaderTheme, SearchHit, SearchRun } from "@/lib/reader-settings";
 
 /**
- * Found while checking that a click on a search result leaves its mark on the page (checkpoint 21).
+ * Found while checking that a click on a search result leaves its mark on the page.
  * reader-shell hands the search tab fresh `onSearch` / `onClearSearch` arrow functions on every
  * render, and it renders whenever the reading position moves or the search index finishes building.
  * The tab's debounced search depended on those functions, so each render ran the search again:

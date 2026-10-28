@@ -1,5 +1,7 @@
 {
   "name": "eviota",
+  "version": "1.0.0",
+  "description": "A private reader for the files other readers struggle with. Runs entirely in the browser.",
   "private": true,
   "license": "MIT OR Apache-2.0",
   "sideEffects": false,

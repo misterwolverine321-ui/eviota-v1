@@ -2,7 +2,7 @@ import type { Annotation } from "./annotations";
 import { ANCHOR_CONTEXT } from "./text-anchor";
 
 /**
- * Repair for marks made with a triple click by checkpoint 8 and earlier.
+ * Repair for marks made with a triple click by earlier builds.
  *
  * Those builds read the end of a selection that finished at the start of the next block as
  * if it finished at the END of the next block, so a stored mark ran on over the following

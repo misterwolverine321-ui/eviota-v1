@@ -1,7 +1,7 @@
 /**
- * Records made by the real checkpoint-8 build (the one with the triple-click overshoot) and
+ * Records made by an earlier build (the one with the triple-click overshoot) and
  * by the current build from the same gestures on the same hostile EPUB, copied from the
- * `annotations.json` of a backup each one exported (checkpoint 10 session). Each pair is
+ * `annotations.json` of a backup each one exported. Each pair is
  * [what the old build stored, what the fixed build stores]. Only the fields that matter here.
  */
 export const REAL_PAIRS = [

@@ -1,5 +1,5 @@
 /**
- * Phase 12 polish — painting the sentence being read aloud.
+ * Painting the sentence being read aloud.
  *
  * The DOM engines and foliate all render ordinary documents, so the spoken
  * sentence is located by flattening the document's text (whitespace collapsed,

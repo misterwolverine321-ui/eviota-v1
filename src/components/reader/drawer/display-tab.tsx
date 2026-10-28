@@ -61,16 +61,16 @@ export function DisplayTab({
   ocrEnabled?: boolean;
   onOcrEnabled?: (next: boolean) => void;
   /**
-   * Phase 15.5: per-book sharp-zoom override for image books. `undefined`
+   * Per-book sharp-zoom override for image books. `undefined`
    * means this book follows the global setting.
    */
   sharpZoom?: boolean;
   onSharpZoom?: (next: boolean | undefined) => void;
   sharpAmount?: number;
   onSharpAmount?: (next: number | undefined) => void;
-  /** Phase 12: read-aloud controls, present when the engine declares `tts`. */
+  /** Read-aloud controls, present when the engine declares `tts`. */
   tts?: ReadAloudApi;
-  /** Phase 12: hands-free scrolling, present when the engine declares it. */
+  /** Hands-free scrolling, present when the engine declares it. */
   autoScroll?: AutoScrollApi;
 }) {
   /** Effective sharp-zoom state for this book: override first, global next. */
@@ -110,7 +110,7 @@ export function DisplayTab({
         </div>
       </Group>
 
-      {/* Phase 12 — read aloud. The engine declares `tts`; the hook reports
+      {/* Read aloud. The engine declares `tts`; the hook reports
           whether this browser actually has speech synthesis. */}
       {caps.tts && tts?.supported && (
         <Group label="Read aloud">
@@ -189,7 +189,7 @@ export function DisplayTab({
         </Group>
       )}
 
-      {/* Phase 12 — hands-free scrolling. */}
+      {/* Hands-free scrolling. */}
       {caps.autoScroll && autoScroll && (
         <Group label="Auto-scroll">
           <button
@@ -302,7 +302,7 @@ export function DisplayTab({
             theme={theme}
           />
 
-          {/* Phase 15 — reading polish: alignment, hyphenation, rhythm. */}
+          {/* Reading polish: alignment, hyphenation, rhythm. */}
           <Group label="Alignment">
             <Segments
               options={["start", "justify"] as const}

@@ -1,5 +1,5 @@
 /**
- * Phase 7.3 — storage meter and eviction handling.
+ * Storage meter and eviction handling.
  *
  * `navigator.storage.estimate()` gives the browser-level picture; the per-book
  * tally walks the stores Eviota owns so "Free up space" can drop derived data

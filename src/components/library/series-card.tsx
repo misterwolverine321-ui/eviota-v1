@@ -10,7 +10,7 @@ interface Props {
 }
 
 /**
- * Phase 15.3 — a comic series shown as one stacked card on the shelf. The
+ * A comic series shown as one stacked card on the shelf. The
  * cover of the first issue is fanned behind two paper edges so the pile reads
  * as "more inside"; clicking drills into the issues.
  */

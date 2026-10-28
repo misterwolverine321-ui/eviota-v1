@@ -4,7 +4,7 @@ import { waitForApp } from "./ready";
 /**
  * The page tells the tests it is live with `data-app-ready` on <html> (set by the root route), not
  * with the benchmark harness the specs used to wait for. The harness is developer tooling and is
- * loaded only for an address that asks for it (checkpoint 22, audit 5.3).
+ * loaded only for an address that asks for it.
  */
 test.describe("the ready marker and the benchmark harness", () => {
   test("an ordinary visit is marked ready and does not carry the benchmark", async ({ page }) => {

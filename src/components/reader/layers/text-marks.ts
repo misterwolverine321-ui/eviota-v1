@@ -1,5 +1,5 @@
 /**
- * Phase 6.3 — text-anchored marks for the DOM engines (TXT / RTF / HTML / MD).
+ * Text-anchored marks for the DOM engines (TXT / RTF / HTML / MD).
  *
  * foliate owns its own Overlayer and pdf.js draws into the canvas layer, but
  * the plain-DOM engines render ordinary elements, so highlights are painted as

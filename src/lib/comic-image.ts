@@ -2,7 +2,7 @@ import type { AdjustOptions } from "@/workers/image-adjust.worker";
 import { probeImageSize } from "@/lib/image-size";
 
 /**
- * Comic image pipeline (Phase 5).
+ * Comic image pipeline.
  *
  * Two jobs, both kept out of the engine component:
  *  - build a panel list from archive entries, optionally cutting wide
@@ -79,7 +79,7 @@ export function isIdentityAdjust(o: AdjustOptions): boolean {
   return o.brightness === 100 && o.contrast === 100 && o.sharpen === 0 && !o.scaleTo && !o.enhance;
 }
 
-// -------------------------------------------------- Phase 15: sharp zoom target --
+// -------------------------------------------------- Sharp zoom target --
 
 /** Never resample beyond this multiple of the scan's native width. */
 export const MAX_ENHANCE = 3;

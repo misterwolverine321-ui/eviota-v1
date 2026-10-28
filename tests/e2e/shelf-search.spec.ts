@@ -5,7 +5,7 @@ import { makeSamplePdf, makeSectionsEpub, SECTIONS_EPUB } from "./fixtures";
 import { makeHostileEpub } from "./hostile";
 
 /**
- * Shelf search over books that have never been opened (checkpoint 17). The shelf indexes EPUB and
+ * Shelf search over books that have never been opened. The shelf indexes EPUB and
  * PDF books in the background; a search reaches them without opening them, and a hit opens the
  * reader at the same page or section the index counted.
  */

@@ -98,13 +98,13 @@ function LibraryPage() {
 
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Phase 7.2 — collections + tag filters, composed with search and sort.
+  // Collections + tag filters, composed with search and sort.
   const [collections, setCollections] = useState<Collection[]>([]);
   const [activeCollection, setActiveCollection] = useState<string | null>(null);
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  // Phase 7.4 — derived reading-status facet.
+  // Derived reading-status facet.
   const [activeStatus, setActiveStatus] = useState<BookStatus | null>(null);
-  // Phase 7.1 — sessions drive the stats strip and per-book time estimates.
+  // Sessions drive the stats strip and per-book time estimates.
   const { sessions, ready: sessionsReady } = useSessions();
   const regionReady = loaded && sessionsReady;
 
@@ -262,7 +262,7 @@ function LibraryPage() {
     return filtered;
   }, [books, collection, activeTags, activeStatus, query, sort]);
 
-  // Phase 15.3 — comics of the same series collapse into one stack on the
+  // Comics of the same series collapse into one stack on the
   // shelf; opening a stack drills into its issues.
   const [openSeries, setOpenSeries] = useState<string | null>(null);
   const { stacks, loose } = useMemo(() => groupBySeries(visible), [visible]);
@@ -348,7 +348,7 @@ function LibraryPage() {
   const [insideResults, setInsideResults] = useState<LibraryBookResult[]>([]);
   const [insideBusy, setInsideBusy] = useState(false);
 
-  // Books that have never been opened are indexed in the background (checkpoint 17), so a search
+  // Books that have never been opened are indexed in the background, so a search
   // reaches them too. Keyed by the ids, so a tag or a title change does not start the work again.
   const [indexStatus, setIndexStatus] = useState<ShelfIndexStatus | null>(null);
   const booksKey = books.map((b) => b.id).join("|");

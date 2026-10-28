@@ -64,7 +64,7 @@ export interface RendererProps {
    */
   onSurfaceTap?: (xFraction: number) => void;
   /**
-   * Phase 4.3: a text anchor either re-resolved or could not be found on its
+   * A text anchor either re-resolved or could not be found on its
    * page. The kernel persists the `orphaned` flag; engines never write records.
    */
   onOrphanChange?: (id: string, orphaned: boolean) => void;
@@ -76,19 +76,19 @@ export interface RendererProps {
   onAnchorCfi?: (id: string, cfi: string) => void;
 
   /**
-   * Request a zoom level (Phase 4). Engines never write settings themselves —
+   * Request a zoom level. Engines never write settings themselves —
    * gesture handlers call this and the kernel persists `pdfScale`.
    */
   onZoom?: (scale: number | "fit") => void;
 
   /**
-   * Phase 6.1: charset override for engines that decode raw bytes. When unset
+   * Charset override for engines that decode raw bytes. When unset
    * the engine sniffs the encoding itself and reports it through `caps`.
    */
   encoding?: string | null;
 
   /**
-   * Phase 6.2: render the extracted article body instead of the original
+   * Render the extracted article body instead of the original
    * document. Only meaningful when the engine reports `caps.cleanView`.
    */
   cleanView?: boolean;
@@ -281,10 +281,10 @@ export function FoliateReader({
         annotations: "cfi",
         // Section-text search, streamed through foliate's matcher.
         search: true,
-        // Phase 5: sections are the index unit. Deliberately NOT `pageCount`
+        // Sections are the index unit. Deliberately NOT `pageCount`
         // — foliate has no thumbnails, so the Pages drawer stays off.
         indexUnits: sections.length,
-        // Phase 12: sections give us plain text, so read-aloud works; a
+        // Sections give us plain text, so read-aloud works; a
         // fixed-layout book has no text layer to speak or to scroll.
         tts: !fixed,
         autoScroll: !fixed,
@@ -520,7 +520,7 @@ export function FoliateReader({
       };
 
       /**
-       * Phase 4.3 — re-resolve every text-anchored mark that belongs to a
+       * Re-resolve every text-anchored mark that belongs to a
        * section against the section's live text, and (re-)register it with
        * foliate under a freshly derived CFI. Marks whose quote has vanished
        * are reported as orphans instead of being dropped.

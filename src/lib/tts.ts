@@ -1,5 +1,5 @@
 /**
- * Read-aloud text plumbing (Phase 12).
+ * Read-aloud text plumbing.
  *
  * Pure helpers only: sentence segmentation, rate clamping and voice choice.
  * The `speechSynthesis` driver lives in `use-tts.ts` so this module stays

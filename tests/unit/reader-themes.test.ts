@@ -17,7 +17,7 @@ function contrast(a: string, b: string): number {
 /**
  * Every reader theme must keep its text readable: the book's ink and the reader's secondary text
  * (the grey labels in the top bar, the drawer and the contents) both reach WCAG 2.2 AA (4.5:1).
- * Sepia's secondary text was 3.52:1 and Dusk's 4.45:1 before checkpoint 25.
+ * Sepia's secondary text was 3.52:1 and Dusk's 4.45:1 in an earlier version.
  *
  * The borders of text fields, selects and text areas (`control`) reach 3:1 (WCAG 1.4.11). The
  * dividers (`line`) are decorative and are not measured here.

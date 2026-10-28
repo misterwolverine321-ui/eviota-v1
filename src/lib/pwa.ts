@@ -1,7 +1,7 @@
 import { assetUrl } from "./asset-url";
 import { IOS_INSTALL_DISMISS_KEY } from "./ios-install";
 /**
- * Phase 13 — install + offline plumbing.
+ * Install + offline plumbing.
  *
  * The generated service worker (vite-plugin-pwa) is registered from here only,
  * and only from a production build: in dev it would shadow the module graph

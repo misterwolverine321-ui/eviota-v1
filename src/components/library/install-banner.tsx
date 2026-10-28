@@ -11,7 +11,7 @@ import {
 import { shouldShowIosInstall } from "@/lib/ios-install";
 
 /**
- * Phase 13 — install affordance.
+ * Install affordance.
  *
  * Only rendered once the browser actually offers `beforeinstallprompt`, so
  * there is no dead button on platforms that can't install (and none at all

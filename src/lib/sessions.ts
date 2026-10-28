@@ -1,5 +1,5 @@
 /**
- * Phase 7.1 — reading sessions and derived stats (DB v4).
+ * Reading sessions and derived stats (DB v4).
  *
  * A session opens when the reader mounts, ticks while the tab is visible and
  * the user is active (idle > 60s pauses accrual), and closes on unmount or

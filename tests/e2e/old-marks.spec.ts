@@ -6,7 +6,7 @@ import { REAL_PAIRS } from "../unit/fixtures/old-annotations";
 import { makeMarkEpub } from "./hostile";
 
 /**
- * Marks that checkpoint 8 and earlier stored with the wrong end (a triple click ran on over the
+ * Marks that earlier builds stored with the wrong end (a triple click ran on over the
  * next paragraph) are corrected when the book is opened, in a real browser.
  *
  * The records are the real ones: `REAL_PAIRS` holds what that build stored and what the fixed
@@ -162,7 +162,7 @@ async function restoreInFreshProfile(
   await ready(other);
   await other.goto("/#/settings");
   await other.setInputFiles('input[type="file"]', {
-    name: "from-checkpoint-8.eviota.zip",
+    name: "from-earlier-build.eviota.zip",
     mimeType: "application/zip",
     buffer: backup,
   });

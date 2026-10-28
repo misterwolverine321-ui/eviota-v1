@@ -20,8 +20,8 @@ export interface ShelfTopHeights {
 }
 
 /**
- * An empty shelf, the first visit's guess: the hero plus the search and sort row. Measured in
- * checkpoint 25 (hero 414 px on a desktop, 591 px on a phone; the row 86 px and 130 px).
+ * An empty shelf, the first visit's guess: the hero plus the search and sort row. Measured with the
+ * hero at 414 px on a desktop and 591 px on a phone, and the row at 86 px and 130 px.
  */
 export const SHELF_TOP_DEFAULTS: Readonly<ShelfTopHeights> = { wide: 500, narrow: 721 };
 

@@ -3,8 +3,8 @@ import { isPlainClick, markAt } from "@/lib/mark-hit";
 
 /**
  * In a PDF the text layer covers the whole page above the highlight overlay,
- * so a click never reaches a highlight's own element (found in Chromium,
- * checkpoint 10). The reader finds the mark under the pointer by geometry
+ * so a click never reaches a highlight's own element (found in Chromium). The reader finds the
+ * mark under the pointer by geometry
  * instead; rects are fractions of the page box.
  */
 const box = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });

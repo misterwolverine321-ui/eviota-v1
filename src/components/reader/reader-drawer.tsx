@@ -111,7 +111,7 @@ export function ReaderDrawer({
   /** Search matching mode (persisted in reader settings). */
   matchCase: boolean;
   wholeWord: boolean;
-  /** Engine-provided page preview renderer (Phase 4 thumbnails). */
+  /** Engine-provided page preview renderer for thumbnails. */
   renderThumbnail?: (page: number, width: number) => Promise<string | null>;
   /** Page management handlers, present only when the engine declares pageOps. */
   pageOps?: PageOpsApi;
@@ -123,15 +123,15 @@ export function ReaderDrawer({
   searchInitialQuery?: string;
   /** Hands the search tab the place of the shelf hit that opened the book, once (see `SearchTab`). */
   searchTakeDeepHit?: () => { page: number; at: number } | null;
-  /** Phase 6.1: force a charset on the decoded source (text engine). */
+  /** Force a charset on the decoded source (text engine). */
   onEncoding?: (label: string) => void;
-  /** Phase 6.2: whether the HTML engine is showing the extracted article. */
+  /** Whether the HTML engine is showing the extracted article. */
   cleanView?: boolean;
   onCleanView?: (next: boolean) => void;
   /** §6.4: per-book OCR opt-in for image-only engines. */
   ocrEnabled?: boolean;
   onOcrEnabled?: (next: boolean) => void;
-  /** Phase 15.5: per-book sharp-zoom override for image books. */
+  /** Per-book sharp-zoom override for image books. */
   sharpZoom?: boolean;
   onSharpZoom?: (next: boolean | undefined) => void;
   sharpAmount?: number;
@@ -140,9 +140,9 @@ export function ReaderDrawer({
   indexProgress?: number;
   /** Whether the index is fed by a text layer or by OCR. */
   indexKind?: "text" | "ocr";
-  /** Phase 12: read-aloud controls, surfaced in the Display tab. */
+  /** Read-aloud controls, surfaced in the Display tab. */
   tts?: ReadAloudApi;
-  /** Phase 12: auto-scroll controls, surfaced in the Display tab. */
+  /** Auto-scroll controls, surfaced in the Display tab. */
   autoScroll?: AutoScrollApi;
   /** PDF form filling, present only when the document carries an AcroForm. */
   forms?: FormsApi;

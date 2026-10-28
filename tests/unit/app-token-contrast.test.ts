@@ -27,7 +27,7 @@ function tokens(selector: RegExp): Record<string, string> {
 
 /**
  * The app's own colour tokens, light and dark. The destructive text in dark mode was white on a
- * red of 3.17:1 before checkpoint 26; it is near-black now (5.96:1). A text field's border (`--input`)
+ * red of 3.17:1 in an earlier version; it is near-black now (5.96:1). A text field's border (`--input`)
  * is what shows where a field is, so it reaches 3:1 (WCAG 1.4.11). `--border` is for dividers only.
  */
 describe.each([

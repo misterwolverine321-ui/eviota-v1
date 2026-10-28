@@ -2,9 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 import { waitForApp } from "./ready";
 
 /**
- * A format that is recognised and kept but not opened: CHM, whose decoder was removed in checkpoint
- * 15 because it was a port of GPL-2.0-or-later code. (DjVu used to be here too, from checkpoint 14,
- * and was opened again with `djvu-rs` in checkpoint 16: see `djvu.spec.ts`.) Such a file must still be
+ * A format that is recognised and kept but not opened: CHM, whose decoder was removed because it
+ * was a port of GPL-2.0-or-later code. (DjVu used to be here too, and was opened again with
+ * `djvu-rs`: see `djvu.spec.ts`.) Such a file must still be
  * accepted onto the shelf and kept, opening it must say plainly that it is not rendered in the app
  * yet and offer the file back unchanged, nothing may ask the site for a removed bundle, and the
  * shelf's format strip must not advertise it. The bytes below are not a real document: nothing

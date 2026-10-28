@@ -2,7 +2,7 @@ import type { Annotation } from "./annotations";
 import { ANNOTATION_COLORS } from "./annotations";
 
 /**
- * PDF page operations (Phase 4).
+ * PDF page operations.
  *
  * Every op is pure: it takes the current file blob and returns a **new** blob.
  * Persistence is the kernel's job — these functions never touch IndexedDB.
@@ -174,7 +174,7 @@ export const withSuffix = (fileName: string, suffix: string) =>
 // ----------------------------------------------------- anchor remapping ----
 
 /**
- * Phase 4.3 — page remapping for anchors after a page op.
+ * Page remapping for anchors after a page op.
  *
  * Ops rewrite the file, so a stored page number can point at the wrong page
  * (reorder), one page too far (delete) or nothing at all (the page it lived on

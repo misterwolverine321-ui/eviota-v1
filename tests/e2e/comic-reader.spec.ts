@@ -3,7 +3,7 @@ import { waitForApp } from "./ready";
 import { CBZ_PAGES, makeSampleCbz } from "./fixtures";
 
 /**
- * Phase 5 comic surface: tap navigation, fit modes, manga (RTL) tap inversion
+ * Comic surface: tap navigation, fit modes, manga (RTL) tap inversion
  * and spread splitting. The fixture is generated in-process so no binary
  * archive lives in the repo.
  */

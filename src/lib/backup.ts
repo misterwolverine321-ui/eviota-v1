@@ -1,5 +1,5 @@
 /**
- * Phase 7.4 — backup & restore.
+ * Backup & restore.
  *
  * Export writes a single `.eviota.zip` with fflate: `manifest.json`,
  * `books.json`, `annotations.json`, `sessions.json`, `collections.json`,
@@ -18,8 +18,8 @@ import type { ReadingSession } from "./sessions";
 export const BACKUP_SCHEMA_VERSION = 1;
 
 /**
- * Backups say `eviota` now. Those written as Nawiri say `nawiri`, and those before that say
- * `folio`; all of them must keep restoring.
+ * Backups say `eviota` now. Those written under an earlier name say `nawiri`, and those before that
+ * say `folio`; all of them must keep restoring.
  */
 const manifestSchema = z.object({
   app: z.enum(["eviota", "nawiri", "folio"]),

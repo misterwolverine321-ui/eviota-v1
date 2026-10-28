@@ -1,5 +1,5 @@
 /**
- * Phase 4.3 — bridge between a rendered pdf.js text layer and text anchors.
+ * Bridge between a rendered pdf.js text layer and text anchors.
  *
  * `text-anchor.ts` is pure offsets; this module is the DOM half. It flattens a
  * page's text layer into one string plus a node/offset map, so a live

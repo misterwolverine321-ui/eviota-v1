@@ -255,7 +255,7 @@ describe("a middle click on a link in a book", () => {
   /**
    * A middle click raises `auxclick`, never `click`, and the browser's default
    * for it on a link is to open the address in a new tab. A guard that listens
-   * for `click` alone is bypassed (found in desktop Chromium, checkpoint 10).
+   * for `click` alone is bypassed (found in desktop Chromium).
    */
   const link = (href: string) => {
     document.body.innerHTML = `<p><a href="${href}"><b id="inner">text</b></a></p><p id="plain">no link</p>`;

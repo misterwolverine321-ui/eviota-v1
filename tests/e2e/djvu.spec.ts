@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { waitForApp } from "./ready";
 
 /**
- * DjVu files open and are read with the `djvu-rs` engine (checkpoint 16): the page is decoded in a
+ * DjVu files open and are read with the `djvu-rs` engine: the page is decoded in a
  * worker, drawn on a canvas, turned with the keys and taps every other paged engine answers to, and
  * searched through its own text layer. The two files are real documents from the `djvu-rs`
  * repository's corpus; where they came from is in `tests/e2e/data/README.md`.
