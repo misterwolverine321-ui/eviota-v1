@@ -21,6 +21,7 @@ import type { RendererProps } from "./foliate-reader";
 import { paintSpoken } from "@/lib/spoken-highlight";
 import { typographyCss } from "@/lib/typography";
 import { REDUCED_MOTION_BOOK_CSS, smoothScroll } from "@/lib/motion";
+import { pressStart, surfaceFraction, tapFraction, type PressStart } from "@/lib/tap-gesture";
 import { CSP_META_HTML, hardenFragment } from "@/lib/safe-document";
 import {
   guardAuxClick,
@@ -48,6 +49,7 @@ export function HtmlReader({
   annotations = [],
   onSelection,
   onOrphanChange,
+  onSurfaceTap,
   cleanView,
 }: RendererProps) {
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -62,8 +64,15 @@ export function HtmlReader({
   /** The raw document's blocks cut into index units (see `text-units.ts`); set once it is read. */
   const unitsRef = useRef<TextUnits | null>(null);
 
-  const latest = useRef({ onReady, onProgress, onError, onSelection, onOrphanChange });
-  latest.current = { onReady, onProgress, onError, onSelection, onOrphanChange };
+  const latest = useRef({
+    onReady,
+    onProgress,
+    onError,
+    onSelection,
+    onOrphanChange,
+    onSurfaceTap,
+  });
+  latest.current = { onReady, onProgress, onError, onSelection, onOrphanChange, onSurfaceTap };
   const dark = theme.id === "dusk";
 
   const active = cleanView && clean ? clean : raw;
@@ -133,6 +142,7 @@ export function HtmlReader({
     ${REDUCED_MOTION_BOOK_CSS}
     body {
       margin: 0 auto; padding: 56px 24px; max-width: ${settings.maxWidth}px;
+      touch-action: manipulation;
       background: ${theme.bg}; color: ${theme.ink};
       font-family: ${FONT_STACKS[settings.fontFamily]};
       font-size: ${settings.fontSize}px; line-height: ${settings.lineHeight};
@@ -245,6 +255,26 @@ export function HtmlReader({
     });
     // A middle click raises auxclick, not click, and would open a tab unasked.
     doc.addEventListener("auxclick", guardAuxClick);
+
+    // Tap forwarding, as in the e-book engine: the page's taps never reach the
+    // shell, so they are classified here and the shell decides what they do.
+    let press: PressStart | null = null;
+    doc.addEventListener("pointerdown", (ev) => {
+      press = pressStart(ev);
+    });
+    doc.addEventListener("pointerup", (ev) => {
+      const sel = doc.getSelection();
+      const fraction = tapFraction(
+        press,
+        { x: ev.clientX, y: ev.clientY, time: ev.timeStamp },
+        win.innerWidth,
+        !!sel && !sel.isCollapsed,
+      );
+      press = null;
+      if (fraction === null) return;
+      const surface = surfaceFraction(win.frameElement, fraction);
+      if (surface !== null) latest.current.onSurfaceTap?.(surface, ev.pointerType);
+    });
 
     /** Index every text-bearing block once, so hits get stable node targets. */
     const indexBlocks = () =>

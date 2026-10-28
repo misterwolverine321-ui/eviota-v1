@@ -8,9 +8,10 @@ const FIRST_DELAY = 6000;
 /**
  * Immersive chrome controller.
  *
- * Deliberately tap-driven: pointer movement never reveals the bars again.
- * Once they are hidden, only an explicit tap on the reading surface (or a
- * keyboard action / drawer) brings them back.
+ * Deliberately tap-driven: moving the pointer over the reading text never
+ * reveals the bars. Once they are hidden, a tap on the reading surface or on
+ * an edge strip (or a keyboard action / drawer) brings them back, and a mouse
+ * resting on an edge strip does too.
  *  - the bars appear on open, then retreat after a quiet delay,
  *  - page turns from the keyboard stay immersive (they call `keepHidden`),
  *  - a drawer (`pinned`) freezes them visible.

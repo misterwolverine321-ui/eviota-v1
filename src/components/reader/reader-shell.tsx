@@ -66,6 +66,13 @@ import {
 import { MAX_HITS } from "@/lib/search";
 import { waitForIndexBuild } from "@/lib/search-wait";
 import { classifyPageOpError } from "@/lib/page-op-errors";
+import {
+  DOUBLE_TAP_WINDOW,
+  pressStart,
+  tapAction,
+  tapFraction,
+  type PressStart,
+} from "@/lib/tap-gesture";
 import { cn } from "@/lib/utils";
 import { SelectionPopover } from "./layers/selection-popover";
 import { useImmersiveChrome } from "@/hooks/use-immersive-chrome";
@@ -875,18 +882,73 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
   // Read-aloud only makes sense while this engine can hand us text.
   const ttsActive = !!caps.tts && tts.active;
 
-  // Center tap toggles chrome; edge taps are the engine's own business.
-  const handleSurfaceTap = (x: number) => {
+  // Taps. The outer thirds turn pages and the middle third shows or hides the bars (touch and
+  // pen only: a mouse click in the middle is for selecting text). Comics and DjVu turn their own
+  // pages, because their taps carry a delay or a zoom. A double tap toggles nothing: the bars wait
+  // a moment, and a second tap inside that moment cancels the toggle.
+  const turnsOwnPages = kind === "comic" || kind === "djvu";
+  const toggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastToggleTap = useRef(-Infinity);
+  useEffect(
+    () => () => {
+      if (toggleTimer.current) clearTimeout(toggleTimer.current);
+    },
+    [],
+  );
+
+  const handleSurfaceTap = (fraction: number, pointerType: string) => {
     if (selection) {
       setSelection(null);
       return;
     }
     if (tab) return;
-    if (x > 0.3 && x < 0.7) chrome.toggle();
+    const action = tapAction(fraction, pointerType);
+    // Date.now() rather than performance.now(): taps from inside a book's frame arrive on
+    // another document's clock.
+    const now = Date.now();
+    if (action === "toggle") {
+      if (now - lastToggleTap.current < DOUBLE_TAP_WINDOW) {
+        // The second tap of a double tap: no toggle at all.
+        lastToggleTap.current = -Infinity;
+        if (toggleTimer.current) clearTimeout(toggleTimer.current);
+        toggleTimer.current = null;
+        return;
+      }
+      lastToggleTap.current = now;
+      if (toggleTimer.current) clearTimeout(toggleTimer.current);
+      toggleTimer.current = setTimeout(() => {
+        toggleTimer.current = null;
+        chrome.toggle();
+      }, DOUBLE_TAP_WINDOW);
+      return;
+    }
+    lastToggleTap.current = -Infinity;
+    if (toggleTimer.current) clearTimeout(toggleTimer.current);
+    toggleTimer.current = null;
+    if (turnsOwnPages || action === "none") return;
+    chrome.keepHidden();
+    if (action === "back") navRef.current?.prev();
+    else navRef.current?.next();
   };
-  const onSurfacePointerDown = (e: React.PointerEvent) => {
+
+  const pressRef = useRef<PressStart | null>(null);
+  const onSurfacePointerDown = (e: React.PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    handleSurfaceTap((e.clientX - rect.left) / rect.width);
+    pressRef.current = pressStart(e, rect.left, rect.top);
+  };
+  const onSurfacePointerUp = (e: React.PointerEvent<HTMLElement>) => {
+    const start = pressRef.current;
+    pressRef.current = null;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sel = window.getSelection();
+    const selected = !!sel && !sel.isCollapsed && sel.toString() !== "";
+    const fraction = tapFraction(
+      start,
+      { x: e.clientX - rect.left, y: e.clientY - rect.top, time: e.timeStamp },
+      rect.width,
+      selected,
+    );
+    if (fraction !== null) handleSurfaceTap(fraction, e.pointerType);
   };
 
   return (
@@ -898,7 +960,15 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       style={{ background: theme.bg, color: theme.ink, height: "100dvh" }}
     >
       {/* reading surface — full bleed, chrome floats over it */}
-      <main className="absolute inset-0" onPointerDown={onSurfacePointerDown}>
+      <main
+        className="absolute inset-0"
+        style={{ touchAction: "manipulation" }}
+        onPointerDown={onSurfacePointerDown}
+        onPointerUp={onSurfacePointerUp}
+        onPointerCancel={() => {
+          pressRef.current = null;
+        }}
+      >
         {error ? (
           <Fallback title="Couldn't open this file" body={error} book={book} file={localFile} />
         ) : Engine ? (
@@ -937,9 +1007,14 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         )}
       </main>
 
-      {/* A tap anywhere along the top edge brings the bars back. Without it the bars
-          came back only from a tap in the middle 40% of the screen. */}
+      {/* A strip along each edge brings its bar back: a tap, or with a mouse, moving onto it. */}
       <RevealBand
+        active={!chrome.visible && tab === null}
+        onReveal={chrome.show}
+        color={theme.ink}
+      />
+      <RevealBand
+        edge="bottom"
         active={!chrome.visible && tab === null}
         onReveal={chrome.show}
         color={theme.ink}

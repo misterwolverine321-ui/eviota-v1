@@ -21,6 +21,7 @@ import {
 } from "@/lib/guided-view";
 import { BookLoader } from "@/components/loading-book";
 import { useComicZoom } from "@/hooks/use-comic-zoom";
+import { tapZone } from "@/lib/tap-gesture";
 
 const IMAGE_RE = /\.(jpe?g|png|gif|webp|avif|bmp)$/i;
 
@@ -502,9 +503,11 @@ export function ComicReader({
       const guidedActive = guidedRef.current.on && guidedRef.current.rects.length > 1;
       if (zoomer.zoomed && !guidedActive) return;
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const rightHalf = e.clientX - rect.left > rect.width / 2;
-      // In manga mode the left half advances.
-      const forward = settings.manga ? !rightHalf : rightHalf;
+      const zone = tapZone((e.clientX - rect.left) / rect.width);
+      // The middle third is the bars' zone, not a page turn.
+      if (zone === "middle") return;
+      // In manga mode the left third advances.
+      const forward = settings.manga ? zone === "back" : zone === "forward";
       clearTap();
       tapTimer.current = setTimeout(() => {
         tapTimer.current = null;

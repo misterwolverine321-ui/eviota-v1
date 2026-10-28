@@ -12,6 +12,7 @@ import {
   renderWindow,
 } from "@/lib/djvu";
 import { OcrClient } from "@/lib/ocr";
+import { tapZone } from "@/lib/tap-gesture";
 import { BookLoader } from "@/components/loading-book";
 
 /** Longest page text handed to a screen reader in one piece. */
@@ -322,9 +323,9 @@ export function DjvuReader({
   // A tap on either outer third turns the page; the middle is the shell's, for showing the bars.
   const onClick = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    if (x > 0.7) navRef.current?.next();
-    else if (x < 0.3) navRef.current?.prev();
+    const zone = tapZone((e.clientX - rect.left) / rect.width);
+    if (zone === "forward") navRef.current?.next();
+    else if (zone === "back") navRef.current?.prev();
   };
 
   return (
