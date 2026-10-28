@@ -88,7 +88,8 @@
   --destructive: #d4351c;
   --destructive-foreground: #ffffff;
   --border: #e5e5e5;
-  --input: #e5e5e5;
+  /* Borders of text fields and selects: 3:1 on the page (WCAG 1.4.11). --border is for dividers. */
+  --input: #8a8a8a;
   --ring: #de2d1e;
 }
 
@@ -114,9 +115,10 @@
   --paper: #181818;
   --sepia: #1f1c17;
   --destructive: #ff5541;
-  --destructive-foreground: #ffffff;
+  --destructive-foreground: #111111;
   --border: #2a2a2a;
-  --input: #333333;
+  /* Borders of text fields and selects: 3:1 on the page (WCAG 1.4.11). --border is for dividers. */
+  --input: #6b6b6b;
   --ring: #ff5541;
 }
 
@@ -211,36 +213,6 @@
   box-shadow:
     0 2px 4px oklch(0 0 0 / 0.08),
     0 24px 48px -16px oklch(0 0 0 / 0.28);
-}
-
-/* Slim progress slider used in the reader chrome */
-@utility eviota-range {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 2px;
-  background: color-mix(in oklab, currentColor 15%, transparent);
-  outline: none;
-  cursor: pointer;
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
-    background: var(--signal);
-    border: none;
-    transition: transform 0.15s var(--ease-out-expo);
-  }
-  &::-webkit-slider-thumb:hover {
-    transform: scale(1.35);
-  }
-  &::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border-radius: 999px;
-    background: var(--signal);
-    border: none;
-  }
 }
 
 /* Dusk reading theme for fixed-layout (comic) pages rendered by foliate */

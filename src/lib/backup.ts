@@ -195,7 +195,8 @@ export async function importBackup(
     if (own) {
       merged = { ...merged, fileName: own.fileName, size: own.size, addedAt: own.addedAt };
     }
-    prev ? updated++ : added++;
+    if (prev) updated++;
+    else added++;
 
     const blob = entries[`blobs/${record.id}`];
     let hasFile = !!(await db.get("files", targetId));

@@ -1062,12 +1062,11 @@ Legend: Done / Partly done / Not started; Tested = unit tests, Browser = checked
 | Reader bars keyboard focus, progress announcements        | Done                                                                   | Browser checked (phone size)                           |
 | Book-not-found vs storage-failure screens                 | Done                                                                   | Browser checked (phone size)                           |
 | Collections sidebar on phones (collapsed behind a toggle) | Done                                                                   | Browser checked (phone size)                           |
-| Account sync (the builder's cloud)                              | Partly done — needs the Cloud backend, not available on static hosting | Not tested end-to-end                                  |
+| Account sync (the builder's cloud)                        | Partly done — needs the Cloud backend, not available on static hosting | Not tested end-to-end                                  |
 | AI reading help (explain / summarize / translate)         | Partly done — needs a server and the AI key; errors on GitHub Pages    | Not tested                                             |
 | WebDAV sync                                               | Not offered — code exists but is unused                                | Unit tests on provider only                            |
 | Google Drive sync                                         | Not started — needs an OAuth client                                    | —                                                      |
 | Production build                                          | Passes (server-style output, not yet tried on GitHub Pages)            | —                                                      |
-
 
 ## Verification log
 
@@ -1107,6 +1106,7 @@ Source of direction: the owner's strategy document (`docs/strategy.md`; its clai
 **Rename.** `Folio`/`FOLIO`/`folio` → `Nawiri`/`NAWIRI`/`nawiri` across 42 files (reviewed as a diff against the original zip, not trusted as a regex), package name `tanstack_start_ts` → `nawiri`. Persisted names were treated separately: the IndexedDB name `folio-library` is kept on purpose (no rename API; a migration would copy a whole library); the backup manifest accepts `nawiri` and `folio`; localStorage keys migrate once at start (`src/lib/legacy-storage.ts`) and the pre-paint theme script falls back to the old theme key. Checked by `legacy-storage.test.ts` (6) and `backup-legacy.test.ts` (3, including a real legacy-format zip through the real `importBackup` against fake-indexeddb). Mutations that each failed the intended test: new key overwritten by old; legacy theme fallback removed; manifest back to the strict `z.literal("nawiri")`. The built bundle still contains `folio` only in those compat paths and in pdf-lib's page-size table (`Folio` paper size).
 
 **Safe local-file mode.** Reproduced first: foliate-js (`paginator.js`) sandboxes section iframes with `allow-same-origin allow-scripts`; `epub.js` blocks external script files by default but its own source says inline scripts are not handled. A test builds a hostile EPUB and opens it with foliate's real `EPUB` class: without the guard the section handed to the iframe contains the inline script, an `onerror` handler, a remote tracking pixel, and its stylesheet contains remote `@import`/`url()`.
+
 - `src/lib/safe-document.ts` (pure DOM): removes `<script>`, `on*` attributes, `javascript:`/`vbscript:` URLs (including whitespace-obfuscated), iframes/embeds/non-local objects/`<base>`/meta refresh/`ping`/form actions, SVG `set`/`animate` of `href`/handlers; drops remote `src`/`href`/`srcset`/`poster`/CSS `url()`/`@import`; lists external links; injects a CSP `<meta>`; fails closed (unparseable XML becomes a fixed stand-in). 23 tests. Five mutations each failed a specific test: handlers kept, scheme obfuscation not stripped, scripts kept, protocol-relative URLs treated as local, fail-open on parse error. The three sample EPUBs: every XHTML section keeps byte-identical text and blocks nothing.
 - `src/lib/guard-book.ts`: EPUB through foliate's `transformTarget` `data` event (markup and CSS); MOBI/AZW3 by wrapping `section.load()` with read-back, harden and re-publish, revoking on unload and dispose. 9 tests against the real EPUB class and fake MOBI sections. Mutations: listener not attached (2 tests failed); MOBI wrapper returning the original URL (3 failed).
 - UI: `safe-reading.tsx` (shield button with count and panel; `ExternalLinkGuard`), `safe-report.ts` store (reports are kept per section so paging back does not double-count). 12 jsdom tests; mutations: Open link not opening, link filter removed, per-section de-duplication removed, Esc/overlay dismissal opening the link — each failed the intended test.
@@ -1134,6 +1134,7 @@ Source of direction: the owner's strategy document (`docs/strategy.md`; its clai
 Input: four SVG files the owner got from an outside tool (an eight-concept sheet, a lockup, a dark lockup, a READER lockup), which turned out to be hand-written SVG code rather than generated images.
 
 **What was measured in them (rendered with librsvg and the real fonts; glyph and layout numbers from the font and the pixels):**
+
 - The wordmark was live `<text font-family="Inter Tight, Inter, Arial">`. Rendered with Arial as the fallback, the widths changed and the hand-tuned `dx` nudges stopped meaning anything. For a logo asset the letters must be outlines.
 - The file's own comment claimed a cap height of ~200; Inter Tight's is 0.728 em, so 160 at the 220 px size used.
 - Symbol 320 tall against a 160 cap height; wordmark baseline 12 units below the cut-out N's baseline; gap symbol-to-word 33 units (21% of the cap height).
@@ -1400,6 +1401,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 **Tests (new).** `tests/e2e/shelf-search.spec.ts` (4 specs), `tests/unit/headless-index.test.ts` (3, jsdom: foliate mocked with three sections; numbering, rounding and clamping), `tests/unit/search-index-queue.test.ts` (1, fake-indexeddb: two builds of one book do not interleave).
 
 **Measured (working tree, 2026-10-18).**
+
 - `npx tsc --noEmit`: 0 errors.
 - `npx vitest run`: 632 tests in 60 files, all passing (checkpoint 17: 628 in 58).
 - `npm run build`: 71 precache entries, 10805.89 KiB (before the shelf search: 10802.60 KiB).
@@ -1409,6 +1411,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 - Full e2e (`npm run test:e2e`, port 4173 free, run detached): 99 passed, 1 skipped (the large-scan test), 6.7 minutes.
 
 **Mutation checks** (`$SP/mut/run17.py`, log in `$SP/mut/run17.log`; each file restored from a snapshot and compared with `filecmp`, all restored):
+
 - U-M1, EPUB section numbering off by one: 2 unit tests fail.
 - U-M2, queueing removed: 1 unit test fails.
 - B-M3, PDF page read one page late: `shelf-search.spec.ts` "a PDF and an EPUB that were never opened are found…" fails.
@@ -1429,6 +1432,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 **Starting point, read from the code.** `importFiles` skipped a file when `bookExists` found a book with the same name and size, and in no other case. A duplicate under another name was imported twice. A different file with the same name and size was silently dropped. An empty or mislabelled file went into the decoder and failed there with a generic "Couldn't read".
 
 **What changed.**
+
 - `src/lib/book-identity.ts`: `sameBytes(a, b)` compares in 1 MiB pieces; `findSameFile(file, format, candidates)` returns the book on the shelf that is the same file. For each candidate with the same format and size it compares fingerprints (`fingerprintBlob`, already used by backups) and then bytes. A candidate whose stored file is gone matches by name and size only, as before.
 - `src/lib/import-check.ts` (new): `fileProblem(file)` returns a reason or null. Empty is refused for every format. For EPUB and CBZ (ZIP header: `PK` then 3/4, 5/6 or 7/8), PDF (`%PDF-` within the first 1 KiB), CBR (`Rar!\x1a\x07`), CB7 (`7z\xBC\xAF\x27\x1C`), DjVu (`AT&TFORM`), MOBI/AZW/AZW3 (`BOOKMOBI` or `TEXtREAd` at byte 60) and CHM (`ITSF`), a header that is missing is refused. TXT, RTF, FB2, HTML and Markdown have no fixed header and are checked for emptiness only.
 - `src/lib/import-books.ts`: `ImportResult` gains `rejected: {name, reason}[]`. The shelf is read once per batch, and a book added by the batch is compared with later files in the same batch.
@@ -1438,6 +1442,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 **Fixture check.** Every shipped sample and test file was read for its first bytes before the checks were written: the three sample EPUBs (`PK\x03\x04`), the three DjVu files in `tests/e2e/data` (`AT&TFORM`), the CHM fixture (`ITSF`), and the PDF, CBZ and EPUB fixtures that the e2e helpers build (`%PDF-`, ZIP). None is refused.
 
 **Measured (working tree, 2026-10-18).**
+
 - `npx tsc --noEmit`: 0 errors.
 - `npx vitest run`: 654 tests in 63 files, all passing (the shelf-search checkpoint: 632 in 60; new files: `import-check.test.ts` 11, `duplicate-file.test.ts` 7, `import-duplicates.test.ts` 4).
 - Lint: 53 errors and 15 warnings in 15 files, the baseline. Prettier clean on the changed files.
@@ -1447,6 +1452,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 - Full e2e (port 4173 free, run detached): 101 passed, 1 skipped (the large-scan test), 6.8 minutes. The new `tests/e2e/library-health.spec.ts` has 2 specs and passes.
 
 **Mutation checks** (`$SP/mut/run18c.py`, log `$SP/mut/run18c.log`; every file restored from a snapshot and compared with `filecmp`, all restored):
+
 - U1, fingerprint alone decides: `duplicate-file.test.ts` "does not take a different file of the same size…" fails. This is the case the byte comparison exists for: a 400 KiB file differing at 100 KiB, between the fingerprint windows, has an equal fingerprint.
 - U2, the old name-and-size rule: the same test and `import-duplicates.test.ts` "imports a different file…" fail.
 - U3, batch copies not compared: "keeps one copy when two identical files arrive in the same batch" fails.
@@ -1482,6 +1488,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 **Scripts added** (both read-only, print only, no file written, none writes a claim anywhere): `scripts/audit/contrast.py` reads the colour tokens in `src/styles.css` and the reader themes and prints the 34 app pairs (29 pass, 5 fail) and the 9 reader pairs; `scripts/audit/unused-ui.py` prints the UI components nothing imports (35 of 46), the packages only they need (27) and the packages nothing imports (3).
 
 **Measured (working tree, 2026-10-19).**
+
 - `npx tsc --noEmit`: 0 errors.
 - `npx vitest run`: 658 tests in 64 files, all passing (654 in 63 before; new file `library-search.test.ts`, 4 tests).
 - Lint: 53 errors and 15 warnings in 15 files, the baseline. Prettier clean on the edited source, tests, `HANDOVER.md`, `roadmap.md`, `README.md`, `AGENTS.md` and the audit.
@@ -1507,6 +1514,7 @@ Work done 2026-10-10 and 2026-10-11. **Baseline first**, from a clean `npm insta
 **Breakages** (scripts `$SP/mut/mut21.py` for the first 22 unit and 12 browser breakages and `$SP/mut/mut22.py` for the last 4 and 2; each file restored from a snapshot and compared with the original afterwards; nothing was left differing in any round). **Unit, 26 of 26 caught:** U1 units not cut at the size limit; U2 `locate` picking the block after; U3 the signature ignoring the text; U4 the label giving only where a unit starts; U5 the offset trusted without looking at the text; U6 the occurrence counted up to and including the offset; U7 text-layer pieces walked by code point (first survived; an astral-plane case was added to `hit-locate.test.ts`); U8 a block counted tall only at eight windows; U9 the block range ignoring the confirmed start; U10 RTF `\par` back to a line break; U11 plain text left out of shelf indexing; U12 e-book labels not supplied; U13 the shelf reading text in the default encoding; U14 a changed text no longer rebuilding the index; U15 the signature not stored; U16 the search tab running again when callbacks change; U17 the deep hit taken from the first on the page; U18 the deep hit never taken; U19 the deep hit selected but the reader not taken to it; U20 the shelf link without its offset; U21 the contents entry looked up one section early; U22 the shelf labeller without section ids; U23 the index wait returning without waiting; U24 a replaced build not followed; U25 a cancelled search still waiting; U26 a failed build throwing. **Browser, 14 of 14 caught:** E1 the one-section EPUB hit going to the section; E2 EPUB labels not supplied; E3 and E4 text and HTML hits going to the start of their unit; E5 the PDF jump not waiting for page sizes; E6 no room under the last page; E7 the match left under the top bar; E8 short landscape screens getting the sheet; E9 the shelf link without its offset; E10 the reader ignoring the offset; E11 the drawer closing after a hit on a wide screen; E12 the drawer staying after a tap on a narrow one; E13 the shell never waiting for the index; E14 the shell waiting for no build. **First survivors, each redesigned until caught:** U7; E2, E6 and E7 (the specs were rewritten: the labels are stripped in IndexedDB and must come back when the book opens; the last page is brought to the top; the word's distance from the top bar is measured); E5 survived at 300 pages and is caught at 1,500 by 1 of the 5 PDF specs (the shelf-hit one) in 2.7 minutes. E13 and E14 each fail the throttled DjVu spec after its 60 s wait.
 
 **Measured (working tree, 2026-10-23).**
+
 - `npx tsc --noEmit`: 0 errors.
 - `npx vitest run`: 742 tests in 74 files, all passing (658 in 64 before; 84 more tests and 10 more files). Per file: `text-units` 11, `hit-locate` 17, `html-blocks` 5, `rtf` 9, `search-index-signature` 3, `search-tab` 5, `section-labels` 8, `use-bottom-sheet` 5, `headless-text-index` 4, `search-wait` 7 (all new); `headless-index` 10 (was 3); `library-search` 7 (was 4).
 - Lint: 53 errors, 15 warnings, the baseline totals (the new test files first added 5 Prettier errors; fixed with `prettier --write`). Prettier clean on the edited source, tests and documents.
@@ -1574,7 +1582,6 @@ The owner approved the logo (the E) and the name (Eviota). The owner then asked 
 
 **Not verified.** Whether the new covers are wanted as the app's look (they replace AI art; the owner may want other artwork). The rest of the list in the checkpoint 24 entry above still applies.
 
-
 ## 2026-10-27 — Checkpoint 25: reading-comfort pass
 
 The owner asked for the app to be made perfect for reading comfort, checking whatever the sandbox can measure. The built app was measured, then the numbers that were wrong were fixed.
@@ -1586,3 +1593,13 @@ The owner asked for the app to be made perfect for reading comfort, checking wha
 **Checks.** Typecheck 0 errors. `npx vitest run` 799 tests in 81 files, passing (5 new, `tests/unit/book-fonts.test.ts`). Lint 53 errors, 10 warnings (baseline). `npm run build` precaches 72 files; `npm run verify:static` passes. `npm run test:e2e` 145 passing, 1 skipped, 9.6 minutes. Measured after the changes: phone reader controls 0 of 8 under 44 px; drawers 0 under 44 px; sub-text contrast passes in all themes; the reader's axe scan clean in all themes; the book frame loads the Latin Lora face (200).
 
 **Not verified.** Safari/WebKit (the `'self'` font source inside a book frame), a real phone's touch geometry, a device without Lora installed, a screen reader. The borders (1.24 to 1.49:1) and the dark-mode destructive colour (3.17:1) were not changed; see HANDOVER, "Decisions waiting on the owner".
+
+## 2026-10-28 — Checkpoint 26: the pass before the first push
+
+The owner asked for everything the sandbox can check to be fixed before the repository goes to GitHub. Nothing was pushed.
+
+**Changed.** The shelf reserves the height of the region above the books while they load (`src/lib/shelf-top-height.ts`; the first-visit guess is 500 px on desktop and 721 px on a phone). Text-field borders reach 3:1 (app `--input` `#8a8a8a` in light and `#6b6b6b` in dark; a `control` colour per reader theme). Dark-mode destructive text is `#111111`. The HTML and text readers take the highlight tint from the resolved theme. The unused `eviota-range` utility is gone, and `vite-tsconfig-paths` is replaced by `resolve.tsconfigPaths`. Lint went from 53 errors to 0 with real types for the foliate-js declarations and the helpers.
+
+**Checks.** Typecheck 0 errors. `npm test` 822 tests in 84 files, all passing. Lint 0 errors, 10 warnings. `npm run build` precaches 72 files (10789.51 KiB); `npm run verify:static` passes. `npm run test:e2e`: 151 passing, 1 skipped, in 10.7 minutes. Layout shift on load: empty first visit 0.2558 (desktop) and 0.5663 (phone) before, 0 after; a returning visit with a book 0.1137 and 0.1443 before, 0.0039 and 0.0000 after. The new shelf spec was run with the reserve switched off: all 12 runs failed.
+
+**Not verified.** WebKit (its browser download fails in the sandbox), real phones, screen readers, and the GitHub Pages workflow, which has never run on GitHub.

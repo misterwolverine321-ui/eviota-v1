@@ -21,11 +21,17 @@ export const prettyTitle = (fileName: string) =>
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
 
+/** The fields of a PDF's document information dictionary that this file reads. */
+interface PdfDocInfo {
+  Title?: string;
+  Author?: string;
+}
+
 const str = (v: unknown): string => {
   if (!v) return "";
   if (typeof v === "string") return v;
   if (Array.isArray(v)) return v.map(str).filter(Boolean).join(", ");
-  if (typeof v === "object") return str((v as any).name ?? "");
+  if (typeof v === "object") return str((v as { name?: unknown }).name ?? "");
   return String(v);
 };
 
@@ -60,8 +66,9 @@ async function extractPdf(file: File): Promise<ExtractedMeta> {
   let author = "";
   try {
     const meta = await doc.getMetadata();
-    title = (meta?.info as any)?.Title ?? "";
-    author = (meta?.info as any)?.Author ?? "";
+    const docInfo = meta?.info as PdfDocInfo | undefined;
+    title = docInfo?.Title ?? "";
+    author = docInfo?.Author ?? "";
   } catch {
     /* metadata optional */
   }

@@ -6,7 +6,8 @@ import { IOS_INSTALL_DISMISS_KEY } from "./ios-install";
  * The generated service worker (vite-plugin-pwa) is registered from here only,
  * and only from a production build: in dev it would shadow the module graph
  * and serve stale chunks after every edit. Append `?sw=off` to the address to
- * unregister it, or `?sw=on` to force it on.
+ * unregister it. `?sw=on` is the default and only matters in a production build:
+ * the dev server never registers the worker, whatever the address says.
  */
 
 export interface InstallPromptEvent extends Event {
@@ -21,10 +22,7 @@ const SW_FILE = "sw.js";
 function shouldRegister(): boolean {
   if (!import.meta.env.PROD) return false;
   if (window.self !== window.top) return false;
-  if (new URLSearchParams(window.location.search).has("sw")) {
-    return new URLSearchParams(window.location.search).get("sw") !== "off";
-  }
-  return true;
+  return new URLSearchParams(window.location.search).get("sw") !== "off";
 }
 
 async function unregisterExisting(): Promise<void> {

@@ -187,7 +187,7 @@ export function SelectionPopover({
             aria-label="Note"
             rows={3}
             className="w-full resize-none rounded-[3px] border bg-transparent p-2 text-xs outline-none"
-            style={{ borderColor: theme.line }}
+            style={{ borderColor: theme.control }}
           />
           <button
             type="button"

@@ -39,6 +39,8 @@ export interface MarkContext {
    * 1-based section number so marks stay scoped to their own page.
    */
   page?: number;
+  /** The page is the dark reading theme (Dusk): highlight fills are drawn lighter on it. */
+  dark?: boolean;
 }
 
 const pageOf = (ctx: MarkContext) => ctx.page ?? DOM_PAGE;
@@ -119,9 +121,10 @@ export function paintMarks(
           "background-repeat:no-repeat",
         );
       } else {
-        const surface = getComputedStyle(host).backgroundColor;
-        const dark = /rgb\(\s*(?:[0-5]?\d|6[0-3])\s*,/.test(surface);
-        style.push(`background:${annotationPaint(record.color, dark)}`, "border-radius:2px");
+        style.push(
+          `background:${annotationPaint(record.color, ctx.dark === true)}`,
+          "border-radius:2px",
+        );
       }
       el.style.cssText = style.join(";");
       layer.appendChild(el);

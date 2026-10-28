@@ -36,7 +36,7 @@ export function FormsTab({ theme, forms }: { theme: ReaderTheme; forms: FormsApi
     return raw === undefined ? !!f.checked : raw === true;
   };
 
-  const inputStyle = { borderColor: theme.line, color: theme.ink, background: "transparent" };
+  const inputStyle = { borderColor: theme.control, color: theme.ink, background: "transparent" };
 
   return (
     <div>

@@ -64,6 +64,7 @@ export function HtmlReader({
 
   const latest = useRef({ onReady, onProgress, onError, onSelection, onOrphanChange });
   latest.current = { onReady, onProgress, onError, onSelection, onOrphanChange };
+  const dark = theme.id === "dusk";
 
   const active = cleanView && clean ? clean : raw;
   /** True while the page on screen is the document the search index was built from. */
@@ -168,7 +169,7 @@ export function HtmlReader({
     } catch {
       map = null;
     }
-    const ctx: MarkContext = { doc, host: body, map, frameOffset };
+    const ctx: MarkContext = { doc, host: body, map, frameOffset, dark };
     markCtx.current = ctx;
     paintMarks(ctx, annotations, latest.current.onOrphanChange);
 
@@ -198,6 +199,7 @@ export function HtmlReader({
     };
   }, [
     annotations,
+    dark,
     loadTick,
     frameOffset,
     settings.fontSize,

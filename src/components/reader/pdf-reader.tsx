@@ -289,7 +289,7 @@ export function PdfReader({
         canvas.style.width = "100%";
         canvas.style.height = "auto";
         canvas.style.display = "block";
-        if (!!s.pdfInvert) canvas.style.filter = "invert(1) hue-rotate(180deg) contrast(1.12)";
+        if (s.pdfInvert) canvas.style.filter = "invert(1) hue-rotate(180deg) contrast(1.12)";
         const ctx = canvas.getContext("2d")!;
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, cw, ch);

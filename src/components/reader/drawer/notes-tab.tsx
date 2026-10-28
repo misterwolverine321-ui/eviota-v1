@@ -240,7 +240,7 @@ export function NotesTab({
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       className="w-full resize-none rounded-[3px] border bg-transparent p-2 text-xs outline-none"
-                      style={{ borderColor: theme.line }}
+                      style={{ borderColor: theme.control }}
                     />
                     <div className="mt-1 flex gap-1">
                       <button

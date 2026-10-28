@@ -6,8 +6,10 @@
 Reads the `:root` and `.dark` token blocks in src/styles.css and the three reader themes in
 src/lib/reader-settings.ts, so it cannot drift from the code. It only prints: it never writes a
 file, and its output is a measurement to read, not a claim to paste into a document.
-Text pairs need 4.5:1 and non-text boundaries 3:1. Not measured: rendered pixels, hover and
-disabled states, images, colours written outside the tokens.
+Text pairs need 4.5:1, and the borders of text entry (fields, selects, text areas) need 3:1. The
+dividers (`--border`, a reader theme's `line`) are decorative and are listed, not judged: a divider
+is not the only way a control is found. Not measured: rendered pixels, hover and disabled states,
+images, colours written outside the tokens.
 """
 import re
 from pathlib import Path
@@ -44,28 +46,34 @@ TEXT = [
     ("popover-foreground", "popover"), ("accent-foreground", "background"),
     ("muted-foreground", "card"),
 ]
-NON_TEXT = [("border", "background"), ("input", "background"), ("ring", "background")]
+NON_TEXT = [("input", "background"), ("ring", "background")]
+DIVIDERS = [("border", "background")]
 
 passed = failed = 0
 for name, selector in (("light", r":root\s*"), ("dark", r"\.dark\s*")):
     tokens = block(selector)
     print(f"== {name}")
-    for kind, pairs, need in (("text", TEXT, 4.5), ("non-text", NON_TEXT, 3.0)):
+    for kind, pairs, need in (("text", TEXT, 4.5), ("entry", NON_TEXT, 3.0)):
         for fg, bg in pairs:
             r = ratio(tokens[fg], tokens[bg])
             ok = r >= need
             passed += ok
             failed += not ok
             print(f"  {kind:8} {fg:22} on {bg:12} {tokens[fg]} / {tokens[bg]}  {r:5.2f}  {'PASS' if ok else 'FAIL'}")
+    for fg, bg in DIVIDERS:
+        r = ratio(tokens[fg], tokens[bg])
+        print(f"  divider  {fg:22} on {bg:12} {tokens[fg]} / {tokens[bg]}  {r:5.2f}  decorative, not judged")
 print(f"app pairs: {passed + failed}, pass {passed}, fail {failed}")
 
 print("== reader themes")
 themes = re.findall(
-    r'\{\s*id:\s*"(paper|sepia|dusk)",\s*label:\s*"[^"]*",\s*bg:\s*"(#[0-9A-Fa-f]{6})",\s*ink:\s*"(#[0-9A-Fa-f]{6})",\s*sub:\s*"(#[0-9A-Fa-f]{6})",\s*line:\s*"(#[0-9A-Fa-f]{6})"',
+    r'\{\s*id:\s*"(paper|sepia|dusk)",\s*label:\s*"[^"]*",\s*bg:\s*"(#[0-9A-Fa-f]{6})",\s*ink:\s*"(#[0-9A-Fa-f]{6})",\s*sub:\s*"(#[0-9A-Fa-f]{6})",\s*line:\s*"(#[0-9A-Fa-f]{6})",\s*control:\s*"(#[0-9A-Fa-f]{6})"',
     settings,
 )
 assert len(themes) == 3, "expected the three reader themes in reader-settings.ts"
-for tid, bg, ink, sub, line in themes:
-    for label, colour, need in (("text ink", ink, 4.5), ("sub text", sub, 4.5), ("line (non-text)", line, 3.0)):
+for tid, bg, ink, sub, line, control in themes:
+    for label, colour, need in (("text ink", ink, 4.5), ("sub text", sub, 4.5), ("entry border", control, 3.0)):
         r = ratio(colour, bg)
         print(f"  {tid:6} {label:16} {colour} on {bg}  {r:5.2f}  {'PASS' if r >= need else 'FAIL'}")
+    r = ratio(line, bg)
+    print(f"  {tid:6} {'divider':16} {line} on {bg}  {r:5.2f}  decorative, not judged")

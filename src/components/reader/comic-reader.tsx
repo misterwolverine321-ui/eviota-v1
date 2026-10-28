@@ -2,6 +2,7 @@ import { assetUrl } from "@/lib/asset-url";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { RendererProps } from "./foliate-reader";
 import type { RendererCaps } from "@/lib/reader-settings";
+import type { ComicArchiveItem } from "@/lib/comic-cover";
 import {
   AdjustCache,
   buildPanelsForEntry,
@@ -129,20 +130,19 @@ export function ComicReader({
     let cancelled = false;
     (async () => {
       const { Archive } = await import("libarchive.js");
-      (Archive as any).init({
+      Archive.init({
         workerUrl: assetUrl("vendor/libarchive/worker-bundle.js"),
       });
-      const archive = await (Archive as any).open(file);
-      const flat = await archive.getFilesArray();
+      // libarchive.js declares `open` for a File; it reads only the bytes, so the stored Blob works.
+      const archive = await Archive.open(file as File);
+      const flat: ComicArchiveItem[] = await archive.getFilesArray();
       const items = flat
-        .map((item: any) => ({
+        .map((item) => ({
           name: `${item.path ?? ""}${item.file?.name ?? ""}`,
           file: item.file,
         }))
-        .filter((it: { name: string }) => IMAGE_RE.test(it.name))
-        .sort((a: { name: string }, b: { name: string }) =>
-          a.name.localeCompare(b.name, undefined, { numeric: true }),
-        );
+        .filter((it) => IMAGE_RE.test(it.name))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
 
       if (cancelled) return;
       if (items.length === 0) {

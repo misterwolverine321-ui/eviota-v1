@@ -10,6 +10,8 @@ export interface ReaderTheme {
   bg: string;
   ink: string;
   sub: string;
+  /** Borders of text fields and selects: 3:1 on the page. `line` is for dividers only. */
+  control: string;
   line: string;
 }
 
@@ -22,10 +24,35 @@ export const READER_THEMES: ReaderTheme[] = [
     ink: "#1A1A1A",
     sub: "#737373",
     line: "#E7E7E7",
+    control: "#8A8A8A",
   },
-  { id: "paper", label: "Paper", bg: "#FDFDFD", ink: "#1A1A1A", sub: "#737373", line: "#E7E7E7" },
-  { id: "sepia", label: "Sepia", bg: "#F4F1EA", ink: "#3B332A", sub: "#746853", line: "#E2D9C8" },
-  { id: "dusk", label: "Dusk", bg: "#131313", ink: "#D9D9D9", sub: "#8A8A8A", line: "#2A2A2A" },
+  {
+    id: "paper",
+    label: "Paper",
+    bg: "#FDFDFD",
+    ink: "#1A1A1A",
+    sub: "#737373",
+    line: "#E7E7E7",
+    control: "#8A8A8A",
+  },
+  {
+    id: "sepia",
+    label: "Sepia",
+    bg: "#F4F1EA",
+    ink: "#3B332A",
+    sub: "#746853",
+    line: "#E2D9C8",
+    control: "#8A8374",
+  },
+  {
+    id: "dusk",
+    label: "Dusk",
+    bg: "#131313",
+    ink: "#D9D9D9",
+    sub: "#8A8A8A",
+    line: "#2A2A2A",
+    control: "#6B6B6B",
+  },
 ];
 
 /** The single app red; reads the theme token so reader and chrome match. */

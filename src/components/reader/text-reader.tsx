@@ -48,6 +48,7 @@ export function TextReader({
   const pendingPageRef = useRef<number | null>(null);
   const latest = useRef({ onReady, onProgress, onError, onSelection, onOrphanChange });
   latest.current = { onReady, onProgress, onError, onSelection, onOrphanChange };
+  const dark = theme.id === "dusk";
 
   useEffect(() => {
     let cancelled = false;
@@ -276,7 +277,7 @@ export function TextReader({
     } catch {
       map = null;
     }
-    const ctx: MarkContext = { doc: host.ownerDocument, host, map };
+    const ctx: MarkContext = { doc: host.ownerDocument, host, map, dark };
     markCtx.current = ctx;
     paintMarks(ctx, annotations, latest.current.onOrphanChange);
 
@@ -289,6 +290,7 @@ export function TextReader({
     };
   }, [
     annotations,
+    dark,
     paras,
     settings.fontFamily,
     settings.fontSize,

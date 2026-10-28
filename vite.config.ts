@@ -3,7 +3,6 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import tsconfigPaths from "vite-tsconfig-paths";
 
 // With the extension: Vite 8.2 warns about an import without one in the config, because the native
 // config loader (planned as the default in a later major) runs it through Node, which needs it.
@@ -47,6 +46,8 @@ const TUNNEL_HOSTS = [
 // project site, a user site, a custom domain, or a plain static server.
 export default defineConfig({
   base: "./",
+  // Vite reads the "paths" of tsconfig.json itself, so "@/..." imports resolve without a plugin.
+  resolve: { tsconfigPaths: true },
   server: { allowedHosts: TUNNEL_HOSTS },
   preview: { allowedHosts: TUNNEL_HOSTS },
   plugins: [
@@ -54,7 +55,6 @@ export default defineConfig({
     tanstackRouter({ target: "react" }),
     react(),
     tailwindcss(),
-    tsconfigPaths(),
     injectThemeBoot(),
     VitePWA({
       // Registration lives in src/lib/pwa.ts so dev can refuse it.

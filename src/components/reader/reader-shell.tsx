@@ -1027,7 +1027,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
                 if (page >= 1 && page <= pageCount) navRef.current?.goToPage?.(page);
               }}
               className="h-11 w-16 shrink-0 rounded-[3px] border bg-transparent px-2 font-mono text-[11px] tabular-nums outline-none pointer-fine:h-7"
-              style={{ borderColor: theme.line }}
+              style={{ borderColor: theme.control }}
               aria-label="Go to page"
             />
             <input

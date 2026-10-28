@@ -176,7 +176,7 @@ export function DisplayTab({
               onChange={(e) => update({ ttsVoice: e.target.value || null })}
               aria-label="Voice"
               className="w-full rounded-[3px] border bg-transparent px-2 py-1.5 text-xs"
-              style={{ borderColor: theme.line, color: theme.ink }}
+              style={{ borderColor: theme.control, color: theme.ink }}
             >
               <option value="">Automatic</option>
               {tts.voices.map((v) => (
@@ -570,7 +570,7 @@ export function DisplayTab({
             onChange={(e) => onEncoding(e.target.value)}
             aria-label="Text encoding"
             className="w-full rounded-[3px] border bg-transparent px-2 py-2 text-xs"
-            style={{ borderColor: theme.line, color: theme.ink }}
+            style={{ borderColor: theme.control, color: theme.ink }}
           >
             {ENCODINGS.map((e) => (
               <option

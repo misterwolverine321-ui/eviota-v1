@@ -1,12 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Flame } from "lucide-react";
-import {
-  computeStats,
-  formatDuration,
-  listSessions,
-  type LibraryStats,
-  type ReadingSession,
-} from "@/lib/sessions";
+import { computeStats, formatDuration, listSessions, type ReadingSession } from "@/lib/sessions";
 
 /**
  * Phase 7.1 — compact reading stats strip: streak, today, all-time, pace and
@@ -14,11 +8,12 @@ import {
  * fresh library isn't dominated by zeroes.
  */
 export function StatsStrip({ sessions }: { sessions: ReadingSession[] }) {
-  const [stats, setStats] = useState<LibraryStats | null>(null);
-
-  useEffect(() => {
-    setStats(sessions.length ? computeStats(sessions, Date.now()) : null);
-  }, [sessions]);
+  // Worked out while drawing, not in an effect: the strip then appears in the same commit as the
+  // shelf around it, so nothing below it moves (see the shelf region in routes/index.tsx).
+  const stats = useMemo(
+    () => (sessions.length ? computeStats(sessions, Date.now()) : null),
+    [sessions],
+  );
 
   if (!stats) return null;
 
@@ -81,16 +76,24 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 /** Loads every session once; the library page owns refresh timing. */
-export function useSessions(): ReadingSession[] {
-  const [sessions, setSessions] = useState<ReadingSession[]>([]);
+/**
+ * The reading sessions, and whether they have been read yet, so the shelf can wait for them with the
+ * books. A failed read counts as "read, none", so the shelf is never held back for good.
+ */
+export function useSessions(): { sessions: ReadingSession[]; ready: boolean } {
+  const [state, setState] = useState<{ sessions: ReadingSession[]; ready: boolean }>({
+    sessions: [],
+    ready: false,
+  });
   useEffect(() => {
     let cancelled = false;
-    void listSessions().then((rows) => {
-      if (!cancelled) setSessions(rows);
-    });
+    const settle = (sessions: ReadingSession[]) => {
+      if (!cancelled) setState({ sessions, ready: true });
+    };
+    void listSessions().then(settle, () => settle([]));
     return () => {
       cancelled = true;
     };
   }, []);
-  return sessions;
+  return state;
 }

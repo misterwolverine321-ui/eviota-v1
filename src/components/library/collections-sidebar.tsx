@@ -124,7 +124,7 @@ export function CollectionsSidebar({
             }}
             placeholder="Collection name"
             aria-label="Collection name"
-            className="mt-3 w-full rounded-[3px] border border-border bg-card px-2 py-1.5 text-xs outline-none focus:border-foreground/40"
+            className="mt-3 w-full rounded-[3px] border border-input bg-card px-2 py-1.5 text-xs outline-none focus:border-foreground/40"
           />
         )}
 

@@ -1,4 +1,14 @@
 import { useEffect, useRef } from "react";
+import type { Overlayer } from "foliate-js/overlayer.js";
+import type {
+  BookSection,
+  CreateOverlayDetail,
+  DrawAnnotationDetail,
+  LastLocation,
+  LoadDetail,
+  ShowAnnotationDetail,
+  View,
+} from "foliate-js/view.js";
 import type { BookProgress } from "@/lib/db";
 import type { Annotation, SelectionEvent } from "@/lib/annotations";
 import { annotationPaint, ANNOTATION_COLORS } from "@/lib/annotations";
@@ -134,7 +144,7 @@ a { color: inherit !important; text-decoration: underline; }
 img, svg { max-width: 100% !important; }
 ${REDUCED_MOTION_BOOK_CSS}`;
 
-function applyLayout(view: any, s: ReaderSettings, t: ReaderTheme, host: HTMLElement | null) {
+function applyLayout(view: View, s: ReaderSettings, t: ReaderTheme, host: HTMLElement | null) {
   if (host) {
     host.style.background = t.bg;
     host.classList.toggle("reader-invert", !!view.isFixedLayout && t.id === "dusk");
@@ -190,8 +200,8 @@ export function FoliateReader({
   onSurfaceTap,
 }: RendererProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const viewRef = useRef<any>(null);
-  const overlayerRef = useRef<any>(null);
+  const viewRef = useRef<View | null>(null);
+  const overlayerRef = useRef<typeof Overlayer | null>(null);
   /** Live annotation map keyed by the CFI foliate currently draws it under. */
   const annotRef = useRef<Map<string, Annotation>>(new Map());
   /** Text-anchored marks by id — resolved per section against the live DOM. */
@@ -231,7 +241,7 @@ export function FoliateReader({
 
   useEffect(() => {
     let cancelled = false;
-    let view: any;
+    let createdView: View | undefined;
     let disposeGuard: (() => void) | undefined;
 
     (async () => {
@@ -244,7 +254,8 @@ export function FoliateReader({
       // must be attached before `open`, which may load the first section.
       resetSafeReport();
       disposeGuard = guardBook(book as never, recordSafeReport);
-      view = document.createElement("foliate-view") as any;
+      const view = document.createElement("foliate-view") as View;
+      createdView = view;
       view.style.cssText = "display:block;width:100%;height:100%;";
       // foliate would call window.open() on any external link. Stop that and
       // ask the reader first.
@@ -258,7 +269,7 @@ export function FoliateReader({
       if (cancelled) return;
 
       const fixed = !!view.isFixedLayout;
-      const sections: any[] = book.sections ?? [];
+      const sections: BookSection[] = book.sections ?? [];
       latest.current.onReady({
         toc: book.toc ?? [],
         paged: true,
@@ -433,7 +444,7 @@ export function FoliateReader({
                 .goTo(Math.max(0, anchor.page - 1))
                 .then(() => {
                   const cfi = record ? resolvedRef.current.get(record.id) : undefined;
-                  if (cfi) return view.goTo(cfi);
+                  return cfi ? view.goTo(cfi) : undefined;
                 })
                 .catch(() => {});
             }
@@ -474,8 +485,8 @@ export function FoliateReader({
             if (!subitems.length) continue;
             run.onHits(
               subitems
-                .filter((s: any) => s?.cfi)
-                .map((s: any) => ({
+                .filter((s) => s?.cfi)
+                .map((s) => ({
                   id: `${s.cfi}-${n++}`,
                   excerpt: {
                     pre: s.excerpt?.pre ?? "",
@@ -557,13 +568,13 @@ export function FoliateReader({
       resolveSectionRef.current = resolveSection;
 
       // Draw requests come from foliate whenever an annotated section renders.
-      view.addEventListener("draw-annotation", (e: any) => {
-        const { draw, annotation } = e.detail ?? {};
+      view.addEventListener("draw-annotation", (e) => {
+        const { draw, annotation } = (e as CustomEvent<DrawAnnotationDetail | null>).detail ?? {};
         const value: string = annotation?.value ?? "";
         if (!draw) return;
         // foliate marks its own search results with this prefix.
         if (value.startsWith("foliate-search:")) {
-          draw(overlayerRef.current.highlight, {
+          draw(overlayerRef.current!.highlight, {
             color: hitFill(),
           });
           return;
@@ -574,16 +585,16 @@ export function FoliateReader({
           record.type === "highlight"
             ? annotationPaint(record.color, themeRef.current.id === "dusk")
             : ANNOTATION_COLORS[record.color];
-        const O = overlayerRef.current;
+        const O = overlayerRef.current!;
         if (record.type === "underline") draw(O.underline, { color });
         else if (record.type === "strike") draw(O.strikethrough, { color });
         else draw(O.highlight, { color });
       });
 
       // Tapping an existing mark reopens the popover for it.
-      view.addEventListener("show-annotation", (e: any) => {
-        const { value, range } = e.detail ?? {};
-        const record = annotRef.current.get(value);
+      view.addEventListener("show-annotation", (e) => {
+        const { value, range } = (e as CustomEvent<ShowAnnotationDetail | null>).detail ?? {};
+        const record = value === undefined ? undefined : annotRef.current.get(value);
         if (!record) return;
         latest.current.onSelection?.({
           // A text-anchored mark keeps its own anchor; the CFI is only how
@@ -596,7 +607,7 @@ export function FoliateReader({
       });
 
       // Re-draw marks each time a section mounts its overlay.
-      view.addEventListener("create-overlay", (e: any) => {
+      view.addEventListener("create-overlay", (e) => {
         // foliate announces the overlay before it hands it to the renderer, so it is only found
         // once the current call has returned.
         queueMicrotask(() => hideOverlays(view));
@@ -608,12 +619,12 @@ export function FoliateReader({
             .then(() => drawnRef.current.add(record.anchor.kind === "cfi" ? record.anchor.cfi : ""))
             .catch(() => {});
         }
-        const index = e?.detail?.index;
+        const index = (e as CustomEvent<CreateOverlayDetail | null>).detail?.index;
         if (typeof index === "number") resolveSection(index);
       });
 
-      view.addEventListener("relocate", (e: any) => {
-        const d = e.detail ?? {};
+      view.addEventListener("relocate", (e) => {
+        const d = (e as CustomEvent<LastLocation | null>).detail ?? {};
         let fraction = typeof d.fraction === "number" ? d.fraction : undefined;
         if (fraction == null && typeof d.index === "number" && book.sections?.length > 1) {
           fraction = d.index / (book.sections.length - 1);
@@ -626,9 +637,10 @@ export function FoliateReader({
       });
 
       // arrow keys inside book documents + selection capture
-      view.addEventListener("load", (e: any) => {
-        const doc = e.detail?.doc as Document | undefined;
-        const index = e.detail?.index as number;
+      view.addEventListener("load", (e) => {
+        const detail = (e as CustomEvent<LoadDetail | null>).detail;
+        const doc = detail?.doc;
+        const index = detail?.index as number;
         hideOverlays(view);
         if (doc) {
           // The section's frame is the book's text; without a title a screen reader says "frame".
@@ -758,8 +770,8 @@ export function FoliateReader({
       cancelled = true;
       disposeGuard?.();
       try {
-        view?.close();
-        view?.remove();
+        createdView?.close();
+        createdView?.remove();
       } catch {
         /* noop */
       }
@@ -841,8 +853,8 @@ function selectionRect(range: Range | undefined | null) {
 
   const r = range.getBoundingClientRect();
   if (!r || (r.width === 0 && r.height === 0)) return null;
-  const frame = (range.startContainer.ownerDocument?.defaultView as any)?.frameElement as
-    HTMLElement | undefined;
+  const frame = range.startContainer.ownerDocument?.defaultView?.frameElement as
+    HTMLElement | null | undefined;
   const off = frame?.getBoundingClientRect();
   return {
     x: r.x + (off?.x ?? 0),

@@ -55,7 +55,8 @@ export function IndexTab({
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Filter keywords…"
         aria-label="Filter keywords"
-        className="w-full rounded border border-border bg-transparent px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+        className="w-full rounded border bg-transparent px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring"
+        style={{ borderColor: theme.control }}
       />
       {!shown.length && <EmptyState>No keyword matches “{query}”.</EmptyState>}
       <ul className="space-y-0.5">

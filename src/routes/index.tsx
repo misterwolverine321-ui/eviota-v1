@@ -1,5 +1,5 @@
 import { assetUrl } from "@/lib/asset-url";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Search, Upload, Library, BookOpen, Settings } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +20,13 @@ import { hitOffset, hitPage, searchLibrary, type LibraryBookResult } from "@/lib
 import { indexShelfHeadless, type ShelfIndexStatus } from "@/lib/headless-index";
 import { SAMPLE_BOOKS } from "@/lib/samples";
 import { missingSamples, shelfState } from "@/lib/first-run";
+import {
+  loadShelfTopHeights,
+  saveShelfTopHeights,
+  WIDE_SCREEN_QUERY,
+  withShelfTopHeight,
+  type ShelfTopHeights,
+} from "@/lib/shelf-top-height";
 import {
   allTags,
   bookStatus,
@@ -73,6 +80,16 @@ const SORTS: { key: SortKey; label: string }[] = [
 function LibraryPage() {
   const [books, setBooks] = useState<BookRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
+  // Everything above the shelf grid (the hero or "Your shelf", the stats, the search and sort, and
+  // the index line) is drawn once the books and sessions have loaded. Until then it is an empty box
+  // of the height it had on the last visit on this device, so the grid does not jump (see
+  // src/lib/shelf-top-height.ts). Read once, at mount: the reserve is what this visit starts with.
+  const shelfTopRef = useRef<HTMLDivElement>(null);
+  const [shelfTop] = useState<ShelfTopHeights>(loadShelfTopHeights);
+  const shelfTopStyle = {
+    "--shelf-top-narrow": `${shelfTop.narrow}px`,
+    "--shelf-top-wide": `${shelfTop.wide}px`,
+  } as CSSProperties;
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
   const [busy, setBusy] = useState(false);
@@ -88,7 +105,8 @@ function LibraryPage() {
   // Phase 7.4 — derived reading-status facet.
   const [activeStatus, setActiveStatus] = useState<BookStatus | null>(null);
   // Phase 7.1 — sessions drive the stats strip and per-book time estimates.
-  const sessions = useSessions();
+  const { sessions, ready: sessionsReady } = useSessions();
+  const regionReady = loaded && sessionsReady;
 
   const refresh = useCallback(async () => {
     setBooks(await listBooks());
@@ -99,6 +117,20 @@ function LibraryPage() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Once the region has been drawn, record its height for this screen width. The next visit reserves
+  // that height while the books load. Only a change writes storage.
+  useEffect(() => {
+    const el = shelfTopRef.current;
+    if (!regionReady || !el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      const viewport = window.matchMedia(WIDE_SCREEN_QUERY).matches ? "wide" : "narrow";
+      const next = withShelfTopHeight(loadShelfTopHeights(), viewport, el.offsetHeight);
+      if (next) saveShelfTopHeights(next);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [regionReady]);
 
   // Comics added before cover extraction shipped show a blank card. Repair them
   // once in the background, patching each card in place as its cover lands.
@@ -421,105 +453,118 @@ function LibraryPage() {
 
       <main className="mx-auto max-w-6xl px-6 pb-24">
         <InstallBanner />
-        {/* Hero */}
-        {(continueBook || (loaded && books.length === 0)) && (
-          <section className="anim-rise border-b border-border py-14">
-            {continueBook ? (
-              <ContinueHero book={continueBook} />
-            ) : (
-              <div className="max-w-2xl">
-                <p className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
-                  Offline · Private · In-browser
-                </p>
-                <h1 className="font-display mt-4 text-5xl leading-[1.05] font-semibold tracking-[-0.03em] sm:text-6xl">
-                  Every book you own,
-                  <br />
-                  <span className="text-signal-ink">in one quiet shelf.</span>
-                </h1>
-                <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
-                  Your books stay on this device. Drop in EPUB, PDF, MOBI, AZW3, FB2, comics, plain
-                  text or saved web pages and Eviota reads them right here.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={() => inputRef.current?.click()}
-                    disabled={busy}
-                    className="inline-flex items-center gap-2 rounded-[3px] bg-signal px-5 py-2.5 text-sm font-medium text-signal-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-                  >
-                    <Upload className="h-4 w-4" /> Add books
-                  </button>
-                  {samplesLeft > 0 && (
-                    <button
-                      type="button"
-                      onClick={loadSamples}
-                      disabled={busy || !loaded}
-                      className="inline-flex items-center gap-2 rounded-[3px] border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-secondary disabled:opacity-50"
-                    >
-                      <Library className="h-4 w-4" />
-                      {samplesLeft === SAMPLE_BOOKS.length
-                        ? "Try three sample books"
-                        : "Add the other sample books"}
-                    </button>
+        <div
+          ref={shelfTopRef}
+          style={regionReady ? undefined : shelfTopStyle}
+          className={cn(!regionReady && "h-[var(--shelf-top-narrow)] sm:h-[var(--shelf-top-wide)]")}
+        >
+          {regionReady && (
+            <>
+              {/* Hero */}
+              {(continueBook || books.length === 0) && (
+                <section className="anim-rise border-b border-border py-14">
+                  {continueBook ? (
+                    <ContinueHero book={continueBook} />
+                  ) : (
+                    <div className="max-w-2xl">
+                      <p className="font-mono text-[11px] tracking-[0.24em] text-muted-foreground uppercase">
+                        Offline · Private · In-browser
+                      </p>
+                      <h1 className="font-display mt-4 text-5xl leading-[1.05] font-semibold tracking-[-0.03em] sm:text-6xl">
+                        Every book you own,
+                        <br />
+                        <span className="text-signal-ink">in one quiet shelf.</span>
+                      </h1>
+                      <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground">
+                        Your books stay on this device. Drop in EPUB, PDF, MOBI, AZW3, FB2, comics,
+                        plain text or saved web pages and Eviota reads them right here.
+                      </p>
+                      <div className="mt-8 flex flex-wrap gap-3">
+                        <button
+                          type="button"
+                          onClick={() => inputRef.current?.click()}
+                          disabled={busy}
+                          className="inline-flex items-center gap-2 rounded-[3px] bg-signal px-5 py-2.5 text-sm font-medium text-signal-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                        >
+                          <Upload className="h-4 w-4" /> Add books
+                        </button>
+                        {samplesLeft > 0 && (
+                          <button
+                            type="button"
+                            onClick={loadSamples}
+                            disabled={busy || !loaded}
+                            className="inline-flex items-center gap-2 rounded-[3px] border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-secondary disabled:opacity-50"
+                          >
+                            <Library className="h-4 w-4" />
+                            {samplesLeft === SAMPLE_BOOKS.length
+                              ? "Try three sample books"
+                              : "Add the other sample books"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
+                </section>
+              )}
+
+              {books.length > 0 && (
+                <section className="border-b border-border py-8">
+                  <h1 className="font-display text-2xl font-semibold">Your shelf</h1>
+                  <p className="mt-1 font-mono text-xs text-muted-foreground">
+                    {books.length} {books.length === 1 ? "book" : "books"}
+                  </p>
+                </section>
+              )}
+
+              {/* Reading stats (§10.1) */}
+              <StatsStrip sessions={sessions} />
+
+              {/* Controls */}
+              <section className="flex flex-wrap items-center justify-between gap-4 py-6">
+                <div className="relative w-full max-w-xs">
+                  <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search shelf"
+                    aria-label="Search shelf"
+                    className="w-full rounded-[3px] border border-input bg-card py-2 pr-3 pl-9 text-sm outline-none focus:border-foreground/40"
+                  />
                 </div>
-              </div>
-            )}
-          </section>
-        )}
+                <div className="flex items-center gap-1" role="group" aria-label="Sort shelf">
+                  <span
+                    aria-hidden="true"
+                    className="mr-2 hidden font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase min-[360px]:inline"
+                  >
+                    Sort
+                  </span>
+                  {SORTS.map((s) => (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => setSort(s.key)}
+                      aria-pressed={sort === s.key}
+                      className={cn(
+                        "rounded-[3px] px-1.5 py-1.5 text-xs transition-colors min-[360px]:px-2.5",
+                        sort === s.key
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:bg-secondary",
+                      )}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-        {loaded && books.length > 0 && (
-          <section className="border-b border-border py-8">
-            <h1 className="font-display text-2xl font-semibold">Your shelf</h1>
-            <p className="mt-1 font-mono text-xs text-muted-foreground">
-              {books.length} {books.length === 1 ? "book" : "books"}
-            </p>
-          </section>
-        )}
-
-        {/* Reading stats (§10.1) */}
-        <StatsStrip sessions={sessions} />
-
-        {/* Controls */}
-        <section className="flex flex-wrap items-center justify-between gap-4 py-6">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search shelf"
-              aria-label="Search shelf"
-              className="w-full rounded-[3px] border border-border bg-card py-2 pr-3 pl-9 text-sm outline-none focus:border-foreground/40"
-            />
-          </div>
-          <div className="flex items-center gap-1" role="group" aria-label="Sort shelf">
-            <span
-              aria-hidden="true"
-              className="mr-2 hidden font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase min-[360px]:inline"
-            >
-              Sort
-            </span>
-            {SORTS.map((s) => (
-              <button
-                key={s.key}
-                type="button"
-                onClick={() => setSort(s.key)}
-                aria-pressed={sort === s.key}
-                className={cn(
-                  "rounded-[3px] px-1.5 py-1.5 text-xs transition-colors min-[360px]:px-2.5",
-                  sort === s.key
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-secondary",
-                )}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {indexStatus && indexStatus.eligible > 0 && <IndexLine status={indexStatus} />}
+              {/* Held from the first book, so the grid below does not move when the status arrives. */}
+              {books.length > 0 && (
+                <IndexLine status={indexStatus && indexStatus.eligible > 0 ? indexStatus : null} />
+              )}
+            </>
+          )}
+        </div>
 
         {/* Inside-book results */}
         {query.trim().length >= 2 && (
@@ -705,17 +750,20 @@ function indexLineText(status: ShelfIndexStatus): string {
   return `Shelf search: ${status.ready} of ${status.eligible} ${books} indexed${failed}${done ? "" : "…"}`;
 }
 
-/** The index line: visible, with its progress spoken once it has settled. */
-function IndexLine({ status }: { status: ShelfIndexStatus }) {
-  const text = indexLineText(status);
+/**
+ * The index line: visible, with its progress spoken once it has settled. With no status yet, or
+ * nothing to index, the row is still there (a non-breaking space), so its height never changes.
+ */
+function IndexLine({ status }: { status: ShelfIndexStatus | null }) {
+  const text = status ? indexLineText(status) : "";
   const spoken = useSettledValue(text, 1200);
   return (
     <>
       <p
         aria-hidden="true"
-        className="pb-4 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase"
+        className="min-h-[calc(2lh+1rem)] pb-4 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase sm:min-h-0"
       >
-        {text}
+        {text || " "}
       </p>
       <span role="status" className="sr-only">
         {spoken}

@@ -81,7 +81,7 @@ export function TagEditor({
           }}
           placeholder="tag"
           aria-label={`New tag${bookTitle ? ` for ${bookTitle}` : ""}`}
-          className="w-16 rounded-full border border-border bg-card px-2 py-[2px] text-[11px] outline-none focus:border-foreground/40"
+          className="w-16 rounded-full border border-input bg-card px-2 py-[2px] text-[11px] outline-none focus:border-foreground/40"
         />
       ) : (
         <button

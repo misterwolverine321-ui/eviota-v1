@@ -40,24 +40,33 @@ async function toCover(blob: Blob): Promise<Blob | undefined> {
 }
 
 /**
+ * One entry of libarchive.js's `getFilesArray()`, as the comic readers use it. Only entries whose
+ * name ends in an image extension are read, and those always carry a file to extract.
+ */
+export interface ComicArchiveItem {
+  /** Folder part of the entry's path. */
+  path?: string;
+  file: { name?: string; extract(): Promise<Blob> };
+}
+
+/**
  * Cover image for a comic archive — its first page — or `undefined` when the
  * archive can't be read. Only one entry is ever inflated.
  */
 export async function extractComicCover(file: Blob): Promise<Blob | undefined> {
   try {
     const { Archive } = await import("libarchive.js");
-    (Archive as any).init({ workerUrl: assetUrl("vendor/libarchive/worker-bundle.js") });
-    const archive = await (Archive as any).open(file);
-    const flat = await archive.getFilesArray();
+    Archive.init({ workerUrl: assetUrl("vendor/libarchive/worker-bundle.js") });
+    // libarchive.js declares `open` for a File; it reads only the bytes, so the stored Blob works.
+    const archive = await Archive.open(file as File);
+    const flat: ComicArchiveItem[] = await archive.getFilesArray();
     const items = flat
-      .map((item: any) => ({
+      .map((item) => ({
         name: `${item.path ?? ""}${item.file?.name ?? ""}`,
         file: item.file,
       }))
-      .filter((it: { name: string }) => IMAGE_RE.test(it.name))
-      .sort((a: { name: string }, b: { name: string }) =>
-        a.name.localeCompare(b.name, undefined, { numeric: true }),
-      );
+      .filter((it) => IMAGE_RE.test(it.name))
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
     const first = items[0];
     if (!first) return undefined;
     const blob: Blob = await first.file.extract();
