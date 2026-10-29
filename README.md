@@ -60,7 +60,7 @@ What I have run:
 
 - Unit tests (837 tests in 85 files), type checking, lint and the production build.
 - A static-site check (`npm run verify:static`) that the built folder is self-contained.
-- Browser tests in desktop Chromium (160 passed, 1 skipped by design), including an accessibility audit, hostile-file checks, backup and restore, the reading taps with a mouse and with touch, and phone-sized windows.
+- Browser tests in desktop Chromium (180 passed, 1 skipped by design), including an accessibility audit, hostile-file checks, backup and restore, the reading taps with a mouse and with touch, page-turn feedback, the selection bar, dark pages, the back stack, and phone-sized windows.
 
 What I have not run yet: Safari (WebKit), a real phone, and a screen reader.
 
