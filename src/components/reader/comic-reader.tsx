@@ -22,6 +22,7 @@ import {
 import { BookLoader } from "@/components/loading-book";
 import { useComicZoom } from "@/hooks/use-comic-zoom";
 import { tapZone } from "@/lib/tap-gesture";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 
 const IMAGE_RE = /\.(jpe?g|png|gif|webp|avif|bmp)$/i;
 
@@ -511,6 +512,7 @@ export function ComicReader({
       clearTap();
       tapTimer.current = setTimeout(() => {
         tapTimer.current = null;
+        cuePageTurn(forward ? 1 : -1);
         if (forward) navRef.current?.next();
         else navRef.current?.prev();
       }, 230);

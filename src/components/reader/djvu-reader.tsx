@@ -13,6 +13,7 @@ import {
 } from "@/lib/djvu";
 import { OcrClient } from "@/lib/ocr";
 import { tapZone } from "@/lib/tap-gesture";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 import { BookLoader } from "@/components/loading-book";
 
 /** Longest page text handed to a screen reader in one piece. */
@@ -324,8 +325,13 @@ export function DjvuReader({
   const onClick = (e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const zone = tapZone((e.clientX - rect.left) / rect.width);
-    if (zone === "forward") navRef.current?.next();
-    else if (zone === "back") navRef.current?.prev();
+    if (zone === "forward") {
+      cuePageTurn(1);
+      navRef.current?.next();
+    } else if (zone === "back") {
+      cuePageTurn(-1);
+      navRef.current?.prev();
+    }
   };
 
   return (

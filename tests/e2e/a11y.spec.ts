@@ -267,7 +267,7 @@ test.describe("accessibility: names and structure of every screen", () => {
     await page.keyboard.press("Escape");
 
     await frame.locator("p", { hasText: "Paragraph 1" }).first().dblclick();
-    const actions = page.getByRole("dialog", { name: "Selection actions" });
+    const actions = page.getByRole("toolbar", { name: "Selection actions" });
     await expect(actions).toBeVisible();
     await audit(page, "selection actions");
   });

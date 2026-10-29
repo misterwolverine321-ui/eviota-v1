@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   Check,
@@ -8,6 +8,7 @@ import {
   Strikethrough,
   Trash2,
   Underline,
+  X,
 } from "lucide-react";
 
 import {
@@ -28,13 +29,14 @@ const MARKS: { type: AnnotationType; label: string; icon: typeof Highlighter }[]
 ];
 
 /**
- * Selection popover — the single write surface for text annotations.
+ * Selection actions, shown in the reader's top bar while text is selected.
  *
- * It positions itself over the engine surface using the viewport rect the
- * engine reported, flipping below the selection when there is no room above.
- * It never persists anything: every action calls back into the kernel.
+ * They used to float over the selection, where iOS also puts its own Copy, Look Up and Translate
+ * menu, so the two covered each other. In the bar they sit clear of that menu. It is the single
+ * write surface for text annotations: it never persists anything, every action calls back into
+ * the reader.
  */
-export function SelectionPopover({
+export function SelectionBar({
   selection,
   existing,
   theme,
@@ -43,9 +45,7 @@ export function SelectionPopover({
   onDelete,
   onDefine,
   onDismiss,
-  bookTitle,
 }: {
-  bookTitle?: string;
   selection: SelectionEvent;
   existing?: Annotation;
   theme: ReaderTheme;
@@ -56,30 +56,15 @@ export function SelectionPopover({
   onDefine?: () => void;
   onDismiss: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
   const [noteMode, setNoteMode] = useState(false);
   const [draft, setDraft] = useState(existing?.note ?? "");
   const [color, setColor] = useState<AnnotationColor>(existing?.color ?? "yellow");
-  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
   useEffect(() => {
     setNoteMode(false);
     setDraft(existing?.note ?? "");
     setColor(existing?.color ?? "yellow");
   }, [selection, existing]);
-
-  // Clamp into the viewport once measured.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const box = el.getBoundingClientRect();
-    const r = selection.rect;
-    const margin = 8;
-    let left = r.x + r.width / 2 - box.width / 2;
-    left = Math.min(window.innerWidth - box.width - margin, Math.max(margin, left));
-    let top = r.y - box.height - 10;
-    if (top < 64) top = Math.min(window.innerHeight - box.height - margin, r.y + r.height + 10);
-    setPos({ left, top });
-  }, [selection, noteMode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -99,83 +84,78 @@ export function SelectionPopover({
 
   return (
     <div
-      ref={ref}
-      role="dialog"
+      role="toolbar"
       aria-label="Selection actions"
-      className="anim-rise absolute z-40 rounded-[4px] border p-2 shadow-xl"
-      style={{
-        left: pos?.left ?? selection.rect.x,
-        top: pos?.top ?? selection.rect.y,
-        visibility: pos ? "visible" : "hidden",
-        background: theme.bg,
-        borderColor: theme.line,
-        color: theme.ink,
-        width: noteMode ? 300 : undefined,
-      }}
-      onPointerDown={(e) => e.stopPropagation()}
+      className="mx-auto flex w-full flex-col gap-2"
     >
-      <div role="group" aria-label="Colour" className="flex items-center gap-1">
-        {COLOR_ORDER.map((c) => (
-          <button
-            key={c}
-            type="button"
-            aria-label={`${c} colour`}
-            aria-pressed={color === c}
-            title={c}
-            onClick={() => {
-              setColor(c);
-              if (!noteMode) onMark(existing?.type ?? "highlight", c);
-            }}
-            className={cn(
-              "h-6 w-6 shrink-0 rounded-full border transition-transform hover:scale-110",
-              color === c && "ring-signal ring-2 ring-offset-1",
-            )}
-            style={{ background: ANNOTATION_COLORS[c], borderColor: theme.line }}
-          />
-        ))}
+      <div className="flex items-center gap-2">
+        <div role="group" aria-label="Colour" className="flex items-center gap-2">
+          {COLOR_ORDER.map((c) => (
+            <button
+              key={c}
+              type="button"
+              aria-label={`${c} colour`}
+              aria-pressed={color === c}
+              title={c}
+              onClick={() => {
+                setColor(c);
+                if (!noteMode) onMark(existing?.type ?? "highlight", c);
+              }}
+              className={cn(
+                "h-7 w-7 shrink-0 rounded-full border transition-transform hover:scale-110",
+                color === c && "ring-signal ring-2 ring-offset-1",
+              )}
+              style={{ background: ANNOTATION_COLORS[c], borderColor: theme.line }}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Close selection actions"
+          onClick={onDismiss}
+          className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 pointer-fine:h-8 pointer-fine:w-8"
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
-      <div
-        className="mt-2 flex items-center gap-1 border-t pt-2"
-        style={{ borderColor: theme.line }}
-      >
+      <div className="flex flex-wrap items-center gap-1">
         {MARKS.map((m) => (
-          <PopButton
+          <ActionButton
             key={m.type}
             label={m.label}
             active={existing?.type === m.type}
             onClick={() => onMark(m.type, color)}
           >
             <m.icon className="h-4 w-4" />
-          </PopButton>
+          </ActionButton>
         ))}
-        <PopButton
+        <ActionButton
           label={existing?.note ? "Edit note" : "Add note"}
           active={noteMode}
           onClick={() => setNoteMode((v) => !v)}
         >
           <StickyNote className="h-4 w-4" />
-        </PopButton>
+        </ActionButton>
         {onDefine && (
-          <PopButton label="Define" onClick={onDefine}>
+          <ActionButton label="Define" onClick={onDefine}>
             <BookOpen className="h-4 w-4" />
-          </PopButton>
+          </ActionButton>
         )}
-        <PopButton label="Copy text" onClick={copy}>
+        <ActionButton label="Copy text" onClick={copy}>
           <Copy className="h-4 w-4" />
-        </PopButton>
-
+        </ActionButton>
         {existing && (
-          <PopButton label="Delete" onClick={onDelete}>
+          <ActionButton label="Delete" onClick={onDelete}>
             <Trash2 className="h-4 w-4" />
-          </PopButton>
+          </ActionButton>
         )}
       </div>
 
       {noteMode && (
-        <div className="mt-2">
+        <div className="flex flex-col gap-2">
           {selection.text ? (
-            <p className="mb-2 line-clamp-3 text-[11px] leading-relaxed italic opacity-60">
+            <p className="line-clamp-2 text-[11px] leading-relaxed italic opacity-60">
               “{selection.text}”
             </p>
           ) : null}
@@ -192,7 +172,7 @@ export function SelectionPopover({
           <button
             type="button"
             onClick={() => onNote(draft.trim(), color)}
-            className="bg-signal text-signal-foreground mt-2 flex w-full items-center justify-center gap-2 rounded-[3px] px-3 py-2 text-xs font-medium"
+            className="bg-signal text-signal-foreground flex w-full items-center justify-center gap-2 rounded-[3px] px-3 py-2 text-xs font-medium"
           >
             <Check className="h-3.5 w-3.5" /> Save note
           </button>
@@ -202,7 +182,7 @@ export function SelectionPopover({
   );
 }
 
-function PopButton({
+function ActionButton({
   children,
   label,
   onClick,
@@ -221,7 +201,7 @@ function PopButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "hover:bg-foreground/5 flex h-8 w-8 items-center justify-center rounded-[3px] transition-colors",
+        "hover:bg-foreground/5 flex h-10 w-10 items-center justify-center rounded-[3px] transition-colors pointer-fine:h-8 pointer-fine:w-8",
         active && "bg-signal text-signal-foreground hover:bg-signal",
       )}
     >

@@ -35,6 +35,7 @@ import {
 import { guardBook } from "@/lib/guard-book";
 import { REDUCED_MOTION_BOOK_CSS } from "@/lib/motion";
 import { bookFontFaces } from "@/lib/book-fonts";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 import { normalizeRange } from "@/lib/normalize-range";
 import {
   guardAuxClick,
@@ -105,8 +106,11 @@ export interface RendererProps {
 const buildCss = (s: ReaderSettings, t: ReaderTheme) => `
 @namespace epub "http://www.idpf.org/2007/ops";
 ${bookFontFaces()}
+/* The page colour comes from the host element behind the book (see applyLayout). The book's
+   document stays transparent, so the margins that foliate paints from the document's background
+   (captured before this sheet loads) cannot show the light page colour. */
 html, body {
-  background: ${t.bg} !important;
+  background: transparent !important;
   color: ${t.ink} !important;
 }
 body {
@@ -221,6 +225,8 @@ export function FoliateReader({
   const resolveSectionRef = useRef<((index: number) => void) | null>(null);
   /** Marks whose CFI was already reported this session, so each is reported once. */
   const reportedCfiRef = useRef<Set<string>>(new Set());
+  // Settings and theme are read through this ref too: the book opens asynchronously, so the view
+  // must take the settings current at that moment, not the ones from the first render.
   const latest = useRef({
     onReady,
     onProgress,
@@ -229,6 +235,8 @@ export function FoliateReader({
     onOrphanChange,
     onAnchorCfi,
     onSurfaceTap,
+    settings,
+    theme,
   });
   latest.current = {
     onReady,
@@ -238,6 +246,8 @@ export function FoliateReader({
     onOrphanChange,
     onAnchorCfi,
     onSurfaceTap,
+    settings,
+    theme,
   };
   const themeRef = useRef(theme);
   themeRef.current = theme;
@@ -726,15 +736,17 @@ export function FoliateReader({
         doc?.addEventListener("keydown", (ev) => {
           if (ev.key === "ArrowRight") {
             ev.preventDefault();
+            cuePageTurn(1);
             navRef.current?.next();
           } else if (ev.key === "ArrowLeft") {
             ev.preventDefault();
+            cuePageTurn(-1);
             navRef.current?.prev();
           }
         });
       });
 
-      applyLayout(view, settings, theme, hostRef.current);
+      applyLayout(view, latest.current.settings, latest.current.theme, hostRef.current);
       try {
         if (progress?.cfi) {
           await view.init({ lastLocation: progress.cfi });

@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { getFormatInfo } from "@/lib/formats";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 import {
   availableTabs,
   DEFAULT_SETTINGS,
@@ -74,7 +75,7 @@ import {
   type PressStart,
 } from "@/lib/tap-gesture";
 import { cn } from "@/lib/utils";
-import { SelectionPopover } from "./layers/selection-popover";
+import { SelectionBar } from "./layers/selection-bar";
 import { useImmersiveChrome } from "@/hooks/use-immersive-chrome";
 import { useBottomSheet } from "@/hooks/use-mobile";
 import { useReadingSession } from "@/hooks/use-reading-session";
@@ -137,6 +138,13 @@ const ENGINES = {
  * Engines are dumb surfaces: they declare `RendererCaps`, expose a `NavApi`,
  * and emit progress. Every control here is gated on a declared capability.
  */
+/** Turns one page, with the cue that shows which way it went. */
+function turnPage(nav: NavApi | null | undefined, dir: 1 | -1) {
+  cuePageTurn(dir);
+  if (dir > 0) nav?.next();
+  else nav?.prev();
+}
+
 export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }: Props) {
   const info = getFormatInfo(book.fileName);
   const kind = info?.kind ?? "unsupported";
@@ -194,7 +202,9 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
 
   // Keyboard focus inside the bars keeps them on screen (no invisible focus).
   const [chromeFocused, setChromeFocused] = useState(false);
-  const chrome = useImmersiveChrome(tab !== null || chromeFocused);
+  // While text is selected, the top bar carries the selection actions, so it stays on screen.
+  const selecting = selection !== null && Boolean(caps.annotations);
+  const chrome = useImmersiveChrome(tab !== null || chromeFocused || selecting);
   const safeReport = useSafeReport();
   const sheet = useBottomSheet();
   /** Accrues active reading time for the library stats strip. */
@@ -771,13 +781,13 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         const flip = !!settings.manga && !!caps.rtl;
         const forwardKey = e.key === "ArrowRight" ? !flip : e.key === "ArrowLeft" ? flip : null;
 
-        if (forwardKey !== null) (forwardKey ? nav?.next : nav?.prev)?.();
-        else if (e.key === "PageDown") nav?.next();
-        else if (e.key === "PageUp") nav?.prev();
+        if (forwardKey !== null) turnPage(nav, forwardKey ? 1 : -1);
+        else if (e.key === "PageDown") turnPage(nav, 1);
+        else if (e.key === "PageUp") turnPage(nav, -1);
         else if (e.key === "Home") nav?.goToFraction?.(0);
         else if (e.key === "End") nav?.goToFraction?.(1);
-        else if (e.shiftKey) nav?.prev();
-        else nav?.next();
+        else if (e.shiftKey) turnPage(nav, -1);
+        else turnPage(nav, 1);
 
         chrome.keepHidden();
         return;
@@ -927,8 +937,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
     toggleTimer.current = null;
     if (turnsOwnPages || action === "none") return;
     chrome.keepHidden();
-    if (action === "back") navRef.current?.prev();
-    else navRef.current?.next();
+    turnPage(navRef.current, action === "back" ? -1 : 1);
   };
 
   const pressRef = useRef<PressStart | null>(null);
@@ -961,6 +970,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
     >
       {/* reading surface — full bleed, chrome floats over it */}
       <main
+        data-reading-surface=""
         className="absolute inset-0"
         style={{ touchAction: "manipulation" }}
         onPointerDown={onSurfacePointerDown}
@@ -1023,7 +1033,8 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       {/* top chrome */}
       <header
         className={cn(
-          "absolute inset-x-0 top-0 z-20 flex h-14 items-center gap-1.5 border-b px-3 backdrop-blur-sm transition-transform duration-200 sm:gap-3 sm:px-5",
+          "absolute inset-x-0 top-0 z-20 border-b px-3 backdrop-blur-sm transition-transform duration-200 sm:px-5",
+          selecting ? "py-2" : "flex h-14 items-center gap-1.5 sm:gap-3",
           !chrome.visible && "-translate-y-full",
         )}
         onPointerDownCapture={chrome.show}
@@ -1037,35 +1048,64 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         }}
         style={{ background: `${theme.bg}f2`, borderColor: theme.line }}
       >
-        <BackLink
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal pointer-fine:h-8 pointer-fine:w-8"
-          aria-label="Back to library"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </BackLink>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-medium tracking-tight">{book.title}</h1>
-          <p
-            className="truncate font-mono text-[11px] tracking-[0.14em] uppercase"
-            style={{ color: theme.sub }}
-          >
-            {info?.label ?? book.format} · {book.author}
-          </p>
-        </div>
-        {showSafeReadingButton(info?.kind, safeReport) && <SafeReadingButton />}
-        {tabs.map((t) => {
-          const Icon = TAB_META[t].icon;
-          return (
-            <IconButton
-              key={t}
-              active={tab === t}
-              onClick={() => openTab(t)}
-              label={TAB_META[t].label}
+        {selecting && selection ? (
+          <>
+            {/* The title heading is kept for screen readers while the bar shows the actions. */}
+            <h1 className="sr-only">{book.title}</h1>
+            <SelectionBar
+              selection={selection}
+              existing={existing}
+              theme={theme}
+              onMark={(type, color) => void applyMark(type, color)}
+              onNote={(note, color) => void applyNote(note, color)}
+              onDelete={() => {
+                if (existing) void removeAnnotation(existing.id);
+                else setSelection(null);
+              }}
+              onDefine={
+                selection.text?.trim()
+                  ? () => {
+                      setDefine({ term: selection.text.trim(), rect: selection.rect });
+                      setSelection(null);
+                    }
+                  : undefined
+              }
+              onDismiss={() => setSelection(null)}
+            />
+          </>
+        ) : (
+          <>
+            <BackLink
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal pointer-fine:h-8 pointer-fine:w-8"
+              aria-label="Back to library"
             >
-              <Icon className="h-4 w-4" />
-            </IconButton>
-          );
-        })}
+              <ArrowLeft className="h-4 w-4" />
+            </BackLink>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-sm font-medium tracking-tight">{book.title}</h1>
+              <p
+                className="truncate font-mono text-[11px] tracking-[0.14em] uppercase"
+                style={{ color: theme.sub }}
+              >
+                {info?.label ?? book.format} · {book.author}
+              </p>
+            </div>
+            {showSafeReadingButton(info?.kind, safeReport) && <SafeReadingButton />}
+            {tabs.map((t) => {
+              const Icon = TAB_META[t].icon;
+              return (
+                <IconButton
+                  key={t}
+                  active={tab === t}
+                  onClick={() => openTab(t)}
+                  label={TAB_META[t].label}
+                >
+                  <Icon className="h-4 w-4" />
+                </IconButton>
+              );
+            })}
+          </>
+        )}
       </header>
 
       {/* bottom chrome — shape adapts to the engine */}
@@ -1086,7 +1126,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         }}
         style={{ background: `${theme.bg}f2`, borderColor: theme.line }}
       >
-        <IconButton onClick={() => navRef.current?.prev()} label="Previous page">
+        <IconButton onClick={() => turnPage(navRef.current, -1)} label="Previous page">
           <ChevronLeft className="h-4 w-4" />
         </IconButton>
 
@@ -1142,36 +1182,12 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         <span role="status" className="sr-only">
           {spokenProgress}
         </span>
-        <IconButton onClick={() => navRef.current?.next()} label="Next page">
+        <IconButton onClick={() => turnPage(navRef.current, 1)} label="Next page">
           <ChevronRight className="h-4 w-4" />
         </IconButton>
       </nav>
 
       <ExternalLinkGuard />
-
-      {selection && caps.annotations && (
-        <SelectionPopover
-          selection={selection}
-          existing={existing}
-          theme={theme}
-          bookTitle={book.title}
-          onMark={(type, color) => void applyMark(type, color)}
-          onNote={(note, color) => void applyNote(note, color)}
-          onDelete={() => {
-            if (existing) void removeAnnotation(existing.id);
-            else setSelection(null);
-          }}
-          onDefine={
-            selection.text?.trim()
-              ? () => {
-                  setDefine({ term: selection.text.trim(), rect: selection.rect });
-                  setSelection(null);
-                }
-              : undefined
-          }
-          onDismiss={() => setSelection(null)}
-        />
-      )}
 
       {define && (
         <DefinitionCard
@@ -1333,12 +1349,9 @@ function Fallback({
           >
             Download file
           </button>
-          <Link
-            to="/"
-            className="rounded-[3px] border border-current/20 px-4 py-2 text-sm font-medium"
-          >
+          <BackLink className="rounded-[3px] border border-current/20 px-4 py-2 text-sm font-medium">
             Back to library
-          </Link>
+          </BackLink>
         </div>
       </div>
     </div>
