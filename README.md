@@ -79,14 +79,13 @@ npm run verify:static    # checks dist/ is a self-contained static site
 
 The app uses hash-based routes and relative URLs, so the built folder works from any address or sub-path.
 
-## Hosting on Vercel
+## Hosting on Cloudflare Pages
 
-The repository can stay private. Vercel hosts private repositories on its free plan.
-
-1. In Vercel, choose **Add New → Project** and import this repository from GitHub.
-2. Keep the detected settings: framework **Vite**, build command `npm run build`, output directory `dist`.
-3. Deploy. Every push to `main` redeploys the site.
-4. For a custom domain, open the project's **Settings → Domains**, add the domain, and set the DNS records Vercel shows. If the DNS is on Cloudflare, use DNS-only records (grey cloud), so Vercel can issue the certificate.
+1. In Cloudflare, open **Workers & Pages → Create → Pages → Connect to Git**, and choose this repository from GitHub.
+2. Set the build: framework preset **Vite**, build command `npm run build`, build output directory `dist`.
+3. Add an environment variable `NODE_VERSION` with the value `22`.
+4. Save and deploy. Every push to `main` redeploys the site. Other branches get their own preview address, so a branch can be tested on a phone before it is merged.
+5. For a custom domain, open the project's **Custom domains** tab and add the domain. Because the domain's DNS is on Cloudflare, Cloudflare creates the records itself. Remove any older records that point to another host.
 
 To install the app on a phone, open the address and use _Add to Home Screen_ (iPhone: Share → Add to Home Screen; Android: the browser's Install option). Each address has its own library. A library on one address or device does not appear on another, so use the backup file to move it.
 
