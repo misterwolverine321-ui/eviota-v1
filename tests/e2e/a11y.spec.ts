@@ -265,6 +265,10 @@ test.describe("accessibility: names and structure of every screen", () => {
     await expect(question).toContainText(new URL(EXTERNAL_LINK).hostname);
     await audit(page, "external-link question");
     await page.keyboard.press("Escape");
+    // Gone, not just closing: the dialog's dark overlay fades out over the book, and a double click
+    // during the fade lands on the overlay, not the text (the selection failed in about half of
+    // the runs before this wait). The same wait is used for the safe-reading panel above.
+    await expect(question).toHaveCount(0);
 
     await frame.locator("p", { hasText: "Paragraph 1" }).first().dblclick();
     const actions = page.getByRole("toolbar", { name: "Selection actions" });
