@@ -20,6 +20,7 @@ import {
   type ReaderSettings,
   type ReaderTheme,
   type RendererCaps,
+  type SearchHit,
 } from "@/lib/reader-settings";
 import { patchBook, putBookFile, type BookProgress, type BookRecord } from "@/lib/db";
 import {
@@ -724,8 +725,10 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
     return hit;
   }, []);
 
-  // Deep link (?page=): jump once the engine installs its NavApi.
-  const initialPageRef = useRef(initialPage ?? null);
+  // Deep link (?page=): jump once the engine installs its NavApi. A deep hit (?page=&at=, with the
+  // query) already names its section and the place in it, so the section jump is left out: the two
+  // jumps race, and the section's start could be the one that lands last.
+  const initialPageRef = useRef(deepHitRef.current != null ? null : (initialPage ?? null));
   useEffect(() => {
     if (initialPageRef.current == null) return undefined;
     const controller = new AbortController();
@@ -738,6 +741,29 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       const target = initialPageRef.current;
       initialPageRef.current = null;
       navRef.current?.goToPage?.(target);
+    })();
+    return () => controller.abort();
+  }, [engineKey]);
+
+  // A search hit jumps once the engine installs its NavApi. The search tab can answer from the saved
+  // index as soon as the engine reports its capabilities, and that comes before the NavApi exists:
+  // a hit taken that early used to be dropped without a trace. It is held here and delivered when
+  // the engine is ready. The wait ends with the component or with the engine itself (engineKey).
+  const pendingHitRef = useRef<SearchHit | null>(null);
+  const jumpToHit = useCallback((hit: SearchHit) => {
+    if (navRef.current) navRef.current.goToHit?.(hit);
+    else pendingHitRef.current = hit;
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      while (!controller.signal.aborted && !navRef.current) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      const hit = pendingHitRef.current;
+      if (controller.signal.aborted || !hit) return;
+      pendingHitRef.current = null;
+      navRef.current?.goToHit?.(hit);
     })();
     return () => controller.abort();
   }, [engineKey]);
@@ -1292,7 +1318,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
           searchTakeDeepHit={takeDeepHit}
           onClearSearch={() => navRef.current?.clearSearch?.()}
           onJumpHit={(hit) => {
-            navRef.current?.goToHit?.(hit);
+            jumpToHit(hit);
             // A bottom sheet covers the page, so it steps aside once the jump is made.
             if (sheet) setTab(null);
           }}

@@ -382,10 +382,23 @@ export function FoliateReader({
           }
           return range;
         };
-        try {
-          await view.renderer.goTo({ index, anchor });
-        } catch {
-          return;
+        // Returns false when the renderer refused the jump.
+        const attempt = async (): Promise<boolean> => {
+          try {
+            await view.renderer.goTo({ index, anchor });
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!(await attempt())) return;
+        // A hit can be taken while the book is still opening, when the renderer asks for the match
+        // before the section's text is in place: `anchor` then finds nothing and the jump lands on
+        // the start of the section. The text is there a moment later, so ask again for a few seconds.
+        for (let tries = 0; !cfi && seq === jumpSeq && tries < 20; tries++) {
+          await new Promise((r) => setTimeout(r, 150));
+          if (seq !== jumpSeq) return;
+          if (!(await attempt())) return;
         }
         if (seq !== jumpSeq || !cfi) return;
         try {
