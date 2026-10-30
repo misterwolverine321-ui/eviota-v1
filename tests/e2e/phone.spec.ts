@@ -186,12 +186,22 @@ test.describe("on a phone", () => {
     await expect(controls).toBeVisible({ timeout: 30_000 });
     // "Added 1 book" is still on screen, now over the reader. It must clear the bar.
     await expect(toast).toBeVisible();
-    const bar = (await controls.boundingBox())!;
-    const note = (await toast.boundingBox())!;
-    expect(
-      note.y + note.height,
-      "the toast's bottom edge is above the bar's top edge",
-    ).toBeLessThanOrEqual(bar.y + 0.5);
+    // The toast slides in from the bottom edge, so its box is read only once it has come to rest:
+    // a read taken mid-slide, under load, sees it still below the bar and fails for no real reason.
+    await expect
+      .poll(
+        async () => {
+          const bar = await controls.boundingBox();
+          const note = await toast.boundingBox();
+          if (!bar || !note) return false;
+          return note.y + note.height <= bar.y + 0.5;
+        },
+        {
+          message: "the toast's bottom edge is above the bar's top edge",
+          timeout: 10_000,
+        },
+      )
+      .toBe(true);
   });
 
   test("the drawer is a bottom sheet that fits the screen, and closing it returns focus", async ({
