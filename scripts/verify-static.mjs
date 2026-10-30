@@ -54,6 +54,10 @@ check(
   /<meta name="referrer" content="no-referrer"\s*\/?>/.test(html),
   "a no-referrer policy is set (a request the app makes does not name the page it came from)",
 );
+check(
+  /<title>[^<]+<\/title>/.test(html),
+  "index.html has a title, so the tab is named before any script runs",
+);
 
 // ---- nothing is fetched from another host at start-up -----------------------------
 // The interface fonts used to come from Google on every visit. A page that names another

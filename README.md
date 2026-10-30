@@ -28,13 +28,13 @@ Importing checks each file. A file whose bytes are already on the shelf is skipp
 
 ## Reading controls
 
-| To | On a phone or tablet | On a computer |
-| --- | --- | --- |
-| Turn to the next page | Tap the right third, or swipe left | Right arrow, Page Down or Space, or click the right edge |
-| Turn back | Tap the left third, or swipe right | Left arrow or Page Up, or click the left edge |
-| Show the bars | Tap the middle, or the top or bottom edge | Move the mouse to the top or bottom edge |
-| Hide the bars | Tap the middle again, or wait a few seconds | Esc, or wait a few seconds |
-| Zoom the text | Use the text size in Settings (pinch zooms the page in PDF and comics) | Use the text size in Settings |
+| To                    | On a phone or tablet                                                   | On a computer                                            |
+| --------------------- | ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| Turn to the next page | Tap the right third, or swipe left                                     | Right arrow, Page Down or Space, or click the right edge |
+| Turn back             | Tap the left third, or swipe right                                     | Left arrow or Page Up, or click the left edge            |
+| Show the bars         | Tap the middle, or the top or bottom edge                              | Move the mouse to the top or bottom edge                 |
+| Hide the bars         | Tap the middle again, or wait a few seconds                            | Esc, or wait a few seconds                               |
+| Zoom the text         | Use the text size in Settings (pinch zooms the page in PDF and comics) | Use the text size in Settings                            |
 
 Two taps in quick succession never show or hide the bars. Double-tapping a comic page zooms in on that spot; everywhere else a double tap does nothing.
 
@@ -56,13 +56,12 @@ Back up your shelf from _Settings_ as a `.eviota.zip` file you keep. Browsers ca
 
 ## Testing
 
-What I have run:
+Every push to `main` and every pull request runs two jobs in GitHub Actions (`.github/workflows/ci.yml`):
 
-- Unit tests (837 tests in 85 files), type checking, lint and the production build.
-- A static-site check (`npm run verify:static`) that the built folder is self-contained.
-- Browser tests in desktop Chromium (180 passed, 1 skipped by design), including an accessibility audit, hostile-file checks, backup and restore, the reading taps with a mouse and with touch, page-turn feedback, the selection bar, dark pages, the back stack, and phone-sized windows.
+- **checks:** unit tests (838 tests in 85 files), type checking, lint, the production build and the static-site check (`npm run verify:static`), which confirms the built folder is self-contained.
+- **browser:** the browser tests in desktop Chromium (180 passed, 1 skipped by design), including an accessibility audit, hostile-file checks, backup and restore, the reading taps with a mouse and with touch, page-turn feedback, the selection bar, dark pages, the back stack, and phone-sized windows. Failing test traces are kept as an artifact for seven days.
 
-What I have not run yet: Safari (WebKit), a real phone, and a screen reader.
+Not yet tested: Safari (WebKit), a real phone, and a screen reader.
 
 ## Run it locally
 
