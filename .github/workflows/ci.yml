@@ -37,7 +37,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       # The specs build the app and serve it (playwright.config.ts), so this runs the same build
       # the checks job verifies, in desktop Chromium.
-      - run: npm run test:e2e
+      # The github reporter turns each failing test into an annotation on this job, so a failure
+      # names the test and its message without downloading the logs.
+      - run: npm run test:e2e -- --reporter=list,github
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
