@@ -95,7 +95,7 @@ describe("third-party notices", () => {
     expect(entry).not.toContain("CHMLib");
   });
 
-  it("states the project's own licence the way I chose it, and ships both licence files", () => {
+  it("states the project's own licence as the maintainer chose it, and ships both licence files", () => {
     expect(notices).toContain("MIT OR Apache-2.0");
     const mit = readFileSync(join(root, "LICENSE-MIT"), "utf8");
     expect(mit).toContain("Copyright (c) 2026 Eviota Contributors");
@@ -166,10 +166,12 @@ describe("third-party notices", () => {
     expect(entry).toContain(`djvu-rs ${version}`);
   });
 
-  it("records the djvu-rs author's statement as my screenshot of it, and draws no conclusion", () => {
+  it("reproduces the djvu-rs notice and says what Eviota has not checked, without repeating correspondence", () => {
     const entry = part("PART 8 -", null).replace(/\s+/g, " ");
-    expect(entry).toContain("as my screenshot of it shows");
-    expect(entry).toContain("the project did not verify it, and it is not an audit");
+    expect(entry).toContain("WHAT EVIOTA HAS NOT CHECKED");
+    expect(entry).toContain("does not repeat or vouch for any correspondence");
+    // The paraphrase of a third party's reply, and the working notes around it, stay out.
+    expect(entry).not.toMatch(/screenshot|issue #949|pull request #95|cos-djvu|Nawiri/);
     expect(entry).toContain("NOT ESTABLISHED BY EVIOTA");
     expect(entry).toContain("any legal conclusion");
     // The unfilled copyright placeholder is flagged, with every crate that shares the text.
@@ -211,7 +213,7 @@ describe("third-party notices", () => {
       "Apache License\n                           Version 2.0, January 2004",
     );
     // It says what it is and what it is not.
-    expect(fallback).toContain("It is a notice, not a finding");
+    expect(fallback.replace(/\s+/g, " ")).toContain("It is a notice, not a finding");
     // The notice is wrapped, so a phrase can cross a line break: compare with spaces.
     expect(fallback.replace(/\s+/g, " ")).toContain(
       "does not say which branch the file was built from",
@@ -225,15 +227,23 @@ describe("third-party notices", () => {
     expect(entry).toContain("INCOMPLETE");
   });
 
-  it("records my decision about the logo concept as mine, not as a finding", () => {
+  it("records the maintainer's decision about the logo concept as theirs, not as a finding", () => {
     // The notice is wrapped at 98 columns, so a phrase can cross a line break: compare with spaces.
     const assets = part("PART 6 -", "PART 7 -").replace(/\s+/g, " ");
-    expect(assets).toContain("MY DECISION, 2026-10-15");
-    expect(assets).toContain("I confirmed and authorised");
+    expect(assets).toContain("MAINTAINER'S DECISION, 2026-10-15");
+    expect(assets).toContain("the maintainer confirmed and authorised");
     expect(assets).toContain("it is not an independent finding");
     expect(assets).toContain("baseline terms are MIT OR Apache-2.0");
     expect(assets).toContain("was NOT checked here");
     // The covers are the project's own drawings now: the entry names the script that draws them.
     expect(assets).toContain("drawn by scripts/covers/make_covers.py");
+  });
+
+  it("speaks in the maintainer's voice, not the first person, where the notice itself writes", () => {
+    // Phrases from the first-person drafts this notice had. The whole file is searched, the
+    // reproduced licence texts included: none of these phrases occurs in them.
+    expect(notices).not.toMatch(
+      /my screenshot|as I chose|approved by me|by me on|at my request|for me at|I confirmed|I plan to|MY DECISION|a lawyer's review/,
+    );
   });
 });
