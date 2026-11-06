@@ -173,7 +173,7 @@ export function HtmlReader({
     const doc = frameRef.current?.contentDocument;
     const body = doc?.body;
     if (!doc || !body) return;
-    let map: DocTextMap | null = null;
+    let map: DocTextMap | null;
     try {
       map = buildDocTextMap(body);
     } catch {

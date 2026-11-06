@@ -312,7 +312,7 @@ export function FoliateReader({
         if (cached != null) return cached;
         const section = sections[i];
         if (!section?.createDocument) return "";
-        let text = "";
+        let text: string;
         try {
           const doc: Document = await section.createDocument();
           text = (doc?.body?.textContent ?? "").replace(/\s+/g, " ").trim();
