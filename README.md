@@ -78,13 +78,21 @@ npm run verify:static    # checks dist/ is a self-contained static site
 
 The app uses hash-based routes and relative URLs, so the built folder works from any address or sub-path.
 
-## Hosting on Cloudflare Pages
+## Hosting on Cloudflare Workers
 
-1. In Cloudflare, open **Workers & Pages → Create → Pages → Connect to Git**, and choose this repository from GitHub.
-2. Set the build: framework preset **Vite**, build command `npm run build`, build output directory `dist`.
-3. Add an environment variable `NODE_VERSION` with the value `22`.
-4. Save and deploy. Every push to `main` redeploys the site. Other branches get their own preview address, so a branch can be tested on a phone before it is merged.
-5. For a custom domain, open the project's **Custom domains** tab and add the domain. Because the domain's DNS is on Cloudflare, Cloudflare creates the records itself. Remove any older records that point to another host.
+The site is served by a Cloudflare Worker that builds from this repository on GitHub. `wrangler.jsonc` names the static folder (`dist/`) and nothing else. The repository can stay private.
+
+Do not make the site public before Cloudflare Access protects it. The `workers.dev` address is open to anyone who has the link until then.
+
+1. In Cloudflare, open **Workers & Pages → Create**, connect your GitHub account, and choose this repository.
+2. Set the production branch to `reading-taps` for now. Each push to that branch rebuilds and redeploys the site.
+3. Set the build command to `npm run build` and the deploy command to `npx wrangler deploy`.
+4. Add an environment variable `NODE_VERSION` with the value `22`.
+5. Save and deploy. Cloudflare gives the Worker a `workers.dev` address.
+6. Before anyone else uses that address, put a Cloudflare Access application in front of it that allows only your own email address. Zero Trust needs a payment method on the account. Check the result in a private browser window: it should ask you to sign in before it shows the shelf.
+7. For a custom domain later, add it to the Worker under its domain settings and let Cloudflare create the DNS records.
+
+Once `main` has the reader changes, switch the production branch to `main`.
 
 To install the app on a phone, open the address and use _Add to Home Screen_ (iPhone: Share → Add to Home Screen; Android: the browser's Install option). Each address has its own library. A library on one address or device does not appear on another, so use the backup file to move it.
 
