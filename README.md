@@ -80,9 +80,9 @@ The app uses hash-based routes and relative URLs, so the built folder works from
 
 ## Hosting on Cloudflare Workers
 
-The site is served by a Cloudflare Worker that builds from this repository on GitHub. `wrangler.jsonc` names the static folder (`dist/`) and nothing else. The repository can stay private.
+The site is served by a Cloudflare Worker on the free Workers plan. The Worker builds from this repository on GitHub, and `wrangler.jsonc` names the static folder (`dist/`) and nothing else. The repository can stay private.
 
-Do not deploy until Cloudflare Access protects the address. The `workers.dev` address is open to anyone who has the link until then.
+Cloudflare Access puts a sign-in in front of the site so that only your email address can open it. Zero Trust, which Access needs, requires a payment method on file even on its free plan. Do not deploy until Access protects the address. The `workers.dev` address is open to anyone who has the link until then.
 
 1. Turn on Cloudflare Zero Trust for the account. It needs a payment method on file. Then create an Access application for the Worker's `workers.dev` address (the Worker is named `eviota`), allowing only your own email address.
 2. In Cloudflare, open **Workers & Pages → Create**, connect your GitHub account, and choose this repository.

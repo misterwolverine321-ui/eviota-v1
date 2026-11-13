@@ -6,8 +6,8 @@ import { routeTree } from "./routeTree.gen";
 /**
  * Hash-based history (`#/read/abc`) keeps Eviota a pure static app: the host
  * only ever serves `index.html`, so there are no server rewrite rules, no 404
- * redirect tricks, and the same build works on a GitHub Pages project path, a
- * custom domain, or any plain static server. It also lets the offline shell be
+ * redirect tricks, and the same build works on a sub-path, a custom domain, or
+ * any plain static host such as a Cloudflare Worker. It also lets the offline shell be
  * a single precached document.
  */
 export function createAppRouter() {
