@@ -82,15 +82,16 @@ The app uses hash-based routes and relative URLs, so the built folder works from
 
 The site is served by a Cloudflare Worker that builds from this repository on GitHub. `wrangler.jsonc` names the static folder (`dist/`) and nothing else. The repository can stay private.
 
-Do not make the site public before Cloudflare Access protects it. The `workers.dev` address is open to anyone who has the link until then.
+Do not deploy until Cloudflare Access protects the address. The `workers.dev` address is open to anyone who has the link until then.
 
-1. In Cloudflare, open **Workers & Pages → Create**, connect your GitHub account, and choose this repository.
-2. Set the production branch to `reading-taps` for now. Each push to that branch rebuilds and redeploys the site.
-3. Set the build command to `npm run build` and the deploy command to `npx wrangler deploy`.
-4. Add an environment variable `NODE_VERSION` with the value `22`.
-5. Save and deploy. Cloudflare gives the Worker a `workers.dev` address.
-6. Before anyone else uses that address, put a Cloudflare Access application in front of it that allows only your own email address. Zero Trust needs a payment method on the account. Check the result in a private browser window: it should ask you to sign in before it shows the shelf.
-7. For a custom domain later, add it to the Worker under its domain settings and let Cloudflare create the DNS records.
+1. Turn on Cloudflare Zero Trust for the account. It needs a payment method on file. Then create an Access application for the Worker's `workers.dev` address (the Worker is named `eviota`), allowing only your own email address.
+2. In Cloudflare, open **Workers & Pages → Create**, connect your GitHub account, and choose this repository.
+3. Set the production branch to `reading-taps` for now. Each push to that branch rebuilds and redeploys the site.
+4. Set the build command to `npm run build` and the deploy command to `npx wrangler deploy`.
+5. Add an environment variable `NODE_VERSION` with the value `22`.
+6. Save and deploy.
+7. In a private browser window, open the address. It should ask you to sign in before it shows the shelf. Only share the address once this check passes.
+8. For a custom domain later, add it to the Worker under its domain settings and let Cloudflare create the DNS records.
 
 Once `main` has the reader changes, switch the production branch to `main`.
 
