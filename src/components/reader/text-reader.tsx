@@ -271,7 +271,7 @@ export function TextReader({
   useEffect(() => {
     const host = contentRef.current;
     if (!host || paras === null) return;
-    let map: DocTextMap | null = null;
+    let map: DocTextMap | null;
     try {
       map = buildDocTextMap(host);
     } catch {
