@@ -388,8 +388,11 @@ export function makeLongFb2(): string {
  * An EPUB whose whole text is one spine item, which is how many novels are made. The index counts
  * one section, so the hit has a section number and an offset and nothing else to go by.
  */
-export function makeLongEpub(): string {
+export function makeLongEpub(opts: { whitePage?: boolean } = {}): string {
   const enc = (s: string) => new TextEncoder().encode(s);
+  // Some books paint their own white page in their CSS, as Walden's does. The reader must not let
+  // that white show through a dark theme.
+  const pageStyle = opts.whitePage ? "<style>body { background-color: #ffffff; }</style>" : "";
   const files: Record<string, Uint8Array | [Uint8Array, { level: 0 }]> = {
     mimetype: [enc("application/epub+zip"), { level: 0 }],
     "META-INF/container.xml": enc(
@@ -402,12 +405,16 @@ export function makeLongEpub(): string {
       `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><head><title>Contents</title></head><body><nav epub:type="toc"><ol><li><a href="c1.xhtml">${LONG_DOC.chapter}</a></li></ol></nav></body></html>`,
     ),
     "OEBPS/c1.xhtml": enc(
-      `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${LONG_DOC.title}</title></head><body><h1>Long document</h1>${longParagraphs()
+      `<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><head><title>${LONG_DOC.title}</title>${pageStyle}</head><body><h1>Long document</h1>${longParagraphs()
         .map((p) => `<p>${p}</p>`)
         .join("")}</body></html>`,
     ),
   };
-  return writeTemp("long-epub", "long-document-epub.epub", zipSync(files));
+  return writeTemp(
+    "long-epub",
+    opts.whitePage ? "long-document-white-epub.epub" : "long-document-epub.epub",
+    zipSync(files),
+  );
 }
 
 // ----------------------------------------------------- mixed-size pdf --

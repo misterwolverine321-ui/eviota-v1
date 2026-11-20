@@ -115,6 +115,34 @@ async function marginIsDark(page: Page): Promise<boolean> {
   return Math.max(r, g, b) < 60;
 }
 
+/**
+ * The share of sampled points on the book's page that are light, read from a screenshot. The
+ * margin check above only sees the outer edge of the screen, which is dark even when the page
+ * itself is white. Text is light only in its strokes, so a dark page reads near 0 and a white one
+ * near 1.
+ */
+async function lightShareOfPage(page: Page): Promise<number> {
+  const box = await page.locator("foliate-view").boundingBox();
+  if (!box) throw new Error("the book is not on the screen");
+  const inset = 90; // clear of the top and bottom bars
+  const clip = { x: box.x, y: box.y + inset, width: box.width, height: box.height - 2 * inset };
+  const png = await page.screenshot({ clip });
+  let light = 0;
+  let total = 0;
+  for (let i = 1; i <= 12; i++) {
+    for (let j = 1; j <= 10; j++) {
+      const [r, g, b] = pngPixel(
+        png,
+        Math.floor((clip.width * i) / 13),
+        Math.floor((clip.height * j) / 11),
+      );
+      total++;
+      if (Math.max(r, g, b) > 128) light++;
+    }
+  }
+  return light / total;
+}
+
 async function setTheme(page: Page, theme: string) {
   await page.goto("/");
   await waitForApp(page);
@@ -411,5 +439,23 @@ test.describe("desktop: back goes one screen at a time, and the shelf is the end
     await page.getByRole("link", { name: "Go home" }).click();
     await expect(page).not.toHaveURL(/no-such-screen/);
     expect(await page.evaluate(() => history.length)).toBe(before);
+  });
+});
+
+// On a phone the page fills the width of the screen, so a white page shows up as most of the frame.
+// On a desktop the text column is narrow and the dark margins hide most of it, so the phone size
+// is the one that catches it. The system scheme is dark too: foliate repaints the page when the
+// scheme changes, and a white page showed up only with the dark system scheme.
+test.describe("phone: a dark page stays dark", () => {
+  test.use({ viewport: { width: 390, height: 844 }, colorScheme: "dark" });
+
+  test("a Dusk book whose own page is white still has a dark page, not a white sheet", async ({
+    page,
+  }) => {
+    await setTheme(page, "dusk");
+    await openBook(page, makeLongEpub({ whitePage: true }), LONG_EPUB);
+    await bookFrame(page);
+    await expect.poll(() => hostBackground(page)).toBe(DUSK);
+    expect(await lightShareOfPage(page)).toBeLessThan(0.5);
   });
 });

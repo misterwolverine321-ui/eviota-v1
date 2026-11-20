@@ -106,10 +106,17 @@ export interface RendererProps {
 const buildCss = (s: ReaderSettings, t: ReaderTheme) => `
 @namespace epub "http://www.idpf.org/2007/ops";
 ${bookFontFaces()}
-/* The page colour comes from the host element behind the book (see applyLayout). The book's
-   document stays transparent, so the margins that foliate paints from the document's background
-   (captured before this sheet loads) cannot show the light page colour. */
-html, body {
+/* Two things paint a white page in a dark theme, and both are fixed here:
+   - foliate paints the page from the background the book had before this sheet loaded. It reads
+     the theme colour from --theme-bg-color when the document names one, so it paints the theme.
+   - with the system in dark mode, a book's root that has no background of its own is painted white.
+     The root takes the theme colour, which is also the host's colour, so nothing changes shape. */
+html {
+  background: ${t.bg} !important;
+  color: ${t.ink} !important;
+  --theme-bg-color: ${t.bg};
+}
+body {
   background: transparent !important;
   color: ${t.ink} !important;
 }
