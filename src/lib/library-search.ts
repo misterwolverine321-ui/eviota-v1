@@ -77,7 +77,7 @@ export async function searchLibrary(
   for (const record of records) {
     if (opts.signal?.aborted) return results;
     const book = byId.get(record.bookId)!;
-    let hits: SearchHit[] = [];
+    let hits: SearchHit[];
     try {
       hits = await queryIndex(record, q, {
         matchCase: opts.matchCase,

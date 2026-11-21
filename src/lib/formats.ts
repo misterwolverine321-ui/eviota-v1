@@ -143,7 +143,3 @@ export function getFormatInfo(fileName: string): FormatInfo | null {
   const ext = fileName.split(".").pop()?.toLowerCase() ?? "";
   return FORMATS[ext] ?? null;
 }
-
-export const ACCEPT_STRING = Object.values(FORMATS)
-  .map((f) => `.${f.ext}`)
-  .join(",");

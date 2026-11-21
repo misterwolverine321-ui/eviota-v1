@@ -27,7 +27,7 @@ const hasIdb = () => typeof indexedDB !== "undefined";
 export async function estimateStorage(): Promise<StorageEstimate | null> {
   if (typeof navigator === "undefined" || !navigator.storage?.estimate) return null;
   const est = await navigator.storage.estimate();
-  let persisted = false;
+  let persisted: boolean;
   try {
     persisted = (await navigator.storage.persisted?.()) ?? false;
   } catch {

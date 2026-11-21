@@ -161,7 +161,7 @@ export function useTts({
   const loadAndSpeak = useCallback(
     async (unit: number, run: number, startIndex = 0): Promise<boolean> => {
       setLoading(true);
-      let text = "";
+      let text: string;
       try {
         text = await srcRef.current.getText(unit);
       } catch {

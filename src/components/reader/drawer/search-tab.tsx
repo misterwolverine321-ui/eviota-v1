@@ -169,7 +169,11 @@ export function SearchTab({
 
   return (
     <div>
+      {/* A named search landmark: a screen reader can jump to it, and the form has a name in every
+          engine (an unnamed form is not exposed as a form in every browser). */}
       <form
+        role="search"
+        aria-label="Search in book"
         onSubmit={(e) => e.preventDefault()}
         className="flex items-center gap-2 rounded-[3px] border px-2"
         style={{ borderColor: theme.line }}

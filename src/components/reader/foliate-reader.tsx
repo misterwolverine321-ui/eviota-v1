@@ -11,6 +11,7 @@ import type {
 } from "foliate-js/view.js";
 import type { BookProgress } from "@/lib/db";
 import type { Annotation, SelectionEvent } from "@/lib/annotations";
+import { pressStart, surfaceFraction, tapFraction, type PressStart } from "@/lib/tap-gesture";
 import { annotationPaint, ANNOTATION_COLORS } from "@/lib/annotations";
 import {
   buildDocTextMap,
@@ -34,6 +35,7 @@ import {
 import { guardBook } from "@/lib/guard-book";
 import { REDUCED_MOTION_BOOK_CSS } from "@/lib/motion";
 import { bookFontFaces } from "@/lib/book-fonts";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 import { normalizeRange } from "@/lib/normalize-range";
 import {
   guardAuxClick,
@@ -57,12 +59,12 @@ export interface RendererProps {
   /** Emitted when the user selects text or taps an existing mark. */
   onSelection?: (selection: SelectionEvent | null) => void;
   /**
-   * A tap on the reading surface, as a fraction of the surface width.
-   * Needed because book content renders inside iframes, so taps there
-   * never reach the shell's own pointer handlers. The shell decides what
-   * the tap means (center toggles chrome, edges are ignored).
+   * A tap on the reading surface, as a fraction of the surface width, with
+   * the kind of pointer that made it. Needed because book content renders
+   * inside iframes, so taps there never reach the shell's own pointer
+   * handlers. The shell decides what the tap does.
    */
-  onSurfaceTap?: (xFraction: number) => void;
+  onSurfaceTap?: (xFraction: number, pointerType: string) => void;
   /**
    * A text anchor either re-resolved or could not be found on its
    * page. The kernel persists the `orphaned` flag; engines never write records.
@@ -104,8 +106,18 @@ export interface RendererProps {
 const buildCss = (s: ReaderSettings, t: ReaderTheme) => `
 @namespace epub "http://www.idpf.org/2007/ops";
 ${bookFontFaces()}
-html, body {
+/* Two things paint a white page in a dark theme, and both are fixed here:
+   - foliate paints the page from the background the book had before this sheet loaded. It reads
+     the theme colour from --theme-bg-color when the document names one, so it paints the theme.
+   - with the system in dark mode, a book's root that has no background of its own is painted white.
+     The root takes the theme colour, which is also the host's colour, so nothing changes shape. */
+html {
   background: ${t.bg} !important;
+  color: ${t.ink} !important;
+  --theme-bg-color: ${t.bg};
+}
+body {
+  background: transparent !important;
   color: ${t.ink} !important;
 }
 body {
@@ -141,6 +153,8 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.35 !important;
 }
 a { color: inherit !important; text-decoration: underline; }
+/* No double-tap zoom in the book: two taps are a double tap, which the shell reads as nothing. */
+html { touch-action: manipulation; }
 img, svg { max-width: 100% !important; }
 ${REDUCED_MOTION_BOOK_CSS}`;
 
@@ -218,6 +232,8 @@ export function FoliateReader({
   const resolveSectionRef = useRef<((index: number) => void) | null>(null);
   /** Marks whose CFI was already reported this session, so each is reported once. */
   const reportedCfiRef = useRef<Set<string>>(new Set());
+  // Settings and theme are read through this ref too: the book opens asynchronously, so the view
+  // must take the settings current at that moment, not the ones from the first render.
   const latest = useRef({
     onReady,
     onProgress,
@@ -226,6 +242,8 @@ export function FoliateReader({
     onOrphanChange,
     onAnchorCfi,
     onSurfaceTap,
+    settings,
+    theme,
   });
   latest.current = {
     onReady,
@@ -235,6 +253,8 @@ export function FoliateReader({
     onOrphanChange,
     onAnchorCfi,
     onSurfaceTap,
+    settings,
+    theme,
   };
   const themeRef = useRef(theme);
   themeRef.current = theme;
@@ -299,7 +319,7 @@ export function FoliateReader({
         if (cached != null) return cached;
         const section = sections[i];
         if (!section?.createDocument) return "";
-        let text = "";
+        let text: string;
         try {
           const doc: Document = await section.createDocument();
           text = (doc?.body?.textContent ?? "").replace(/\s+/g, " ").trim();
@@ -369,10 +389,23 @@ export function FoliateReader({
           }
           return range;
         };
-        try {
-          await view.renderer.goTo({ index, anchor });
-        } catch {
-          return;
+        // Returns false when the renderer refused the jump.
+        const attempt = async (): Promise<boolean> => {
+          try {
+            await view.renderer.goTo({ index, anchor });
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        if (!(await attempt())) return;
+        // A hit can be taken while the book is still opening, when the renderer asks for the match
+        // before the section's text is in place: `anchor` then finds nothing and the jump lands on
+        // the start of the section. The text is there a moment later, so ask again for a few seconds.
+        for (let tries = 0; !cfi && seq === jumpSeq && tries < 20; tries++) {
+          await new Promise((r) => setTimeout(r, 150));
+          if (seq !== jumpSeq) return;
+          if (!(await attempt())) return;
         }
         if (seq !== jumpSeq || !cfi) return;
         try {
@@ -693,32 +726,27 @@ export function FoliateReader({
               rect,
             });
           };
-          // Tap forwarding: book content lives in this iframe document, so
-          // taps never reach the shell's surface handler. Report quick,
-          // still taps (not drags, not selections) with their x fraction.
-          let downX = 0;
-          let downY = 0;
-          let downT = 0;
+          // Tap forwarding: book content lives in this iframe document, so taps
+          // never reach the shell's surface handler. tap-gesture decides what
+          // counts as a tap; the shell decides what the tap does.
+          let press: PressStart | null = null;
           doc.addEventListener("pointerdown", (ev) => {
-            downX = ev.clientX;
-            downY = ev.clientY;
-            downT = ev.timeStamp;
+            press = pressStart(ev);
           });
           doc.addEventListener("pointerup", (ev) => {
             setTimeout(emitSelection, 0);
             const sel = doc.getSelection();
-            if (sel && !sel.isCollapsed) return;
-            if (Math.hypot(ev.clientX - downX, ev.clientY - downY) > 12) return;
-            if (ev.timeStamp - downT > 600) return;
-            const frame = doc.defaultView?.frameElement as HTMLElement | null;
-            const rect = frame?.getBoundingClientRect();
-            if (rect && rect.width > 0) {
-              const outer = frame?.ownerDocument?.defaultView?.innerWidth ?? rect.width;
-              latest.current.onSurfaceTap?.(
-                (rect.x + ev.clientX * (rect.width / (doc.defaultView?.innerWidth ?? rect.width))) /
-                  outer,
-              );
-            }
+            const win = doc.defaultView;
+            const fraction = tapFraction(
+              press,
+              { x: ev.clientX, y: ev.clientY, time: ev.timeStamp },
+              win?.innerWidth ?? 0,
+              !!sel && !sel.isCollapsed,
+            );
+            press = null;
+            if (fraction === null) return;
+            const surface = surfaceFraction(win?.frameElement ?? null, fraction);
+            if (surface !== null) latest.current.onSurfaceTap?.(surface, ev.pointerType);
           });
           doc.addEventListener("contextmenu", (ev) => {
             ev.preventDefault();
@@ -728,15 +756,17 @@ export function FoliateReader({
         doc?.addEventListener("keydown", (ev) => {
           if (ev.key === "ArrowRight") {
             ev.preventDefault();
+            cuePageTurn(1);
             navRef.current?.next();
           } else if (ev.key === "ArrowLeft") {
             ev.preventDefault();
+            cuePageTurn(-1);
             navRef.current?.prev();
           }
         });
       });
 
-      applyLayout(view, settings, theme, hostRef.current);
+      applyLayout(view, latest.current.settings, latest.current.theme, hostRef.current);
       try {
         if (progress?.cfi) {
           await view.init({ lastLocation: progress.cfi });

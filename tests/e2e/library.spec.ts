@@ -30,4 +30,14 @@ test.describe("library core loop", () => {
     await page.goBack();
     await expect(page.getByRole("link", { name: /eviota\s*test/i }).first()).toBeVisible();
   });
+
+  test("the shelf's file picker has no extension list, so iPhone does not grey out CBZ or CBR", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await waitForHydration(page);
+    // iPhone Safari greys out any file it cannot match to an extension in an accept list. A CBZ or
+    // CBR that another app can open would then be unselectable. Import checks names and bytes instead.
+    await expect(page.locator('input[type="file"]')).not.toHaveAttribute("accept", /.+/);
+  });
 });

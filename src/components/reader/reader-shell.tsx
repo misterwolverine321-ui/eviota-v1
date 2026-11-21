@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { getFormatInfo } from "@/lib/formats";
+import { cuePageTurn } from "@/lib/page-turn-cue";
 import {
   availableTabs,
   DEFAULT_SETTINGS,
@@ -19,6 +20,7 @@ import {
   type ReaderSettings,
   type ReaderTheme,
   type RendererCaps,
+  type SearchHit,
 } from "@/lib/reader-settings";
 import { patchBook, putBookFile, type BookProgress, type BookRecord } from "@/lib/db";
 import {
@@ -66,8 +68,15 @@ import {
 import { MAX_HITS } from "@/lib/search";
 import { waitForIndexBuild } from "@/lib/search-wait";
 import { classifyPageOpError } from "@/lib/page-op-errors";
+import {
+  DOUBLE_TAP_WINDOW,
+  pressStart,
+  tapAction,
+  tapFraction,
+  type PressStart,
+} from "@/lib/tap-gesture";
 import { cn } from "@/lib/utils";
-import { SelectionPopover } from "./layers/selection-popover";
+import { SelectionBar } from "./layers/selection-bar";
 import { useImmersiveChrome } from "@/hooks/use-immersive-chrome";
 import { useBottomSheet } from "@/hooks/use-mobile";
 import { useReadingSession } from "@/hooks/use-reading-session";
@@ -130,6 +139,13 @@ const ENGINES = {
  * Engines are dumb surfaces: they declare `RendererCaps`, expose a `NavApi`,
  * and emit progress. Every control here is gated on a declared capability.
  */
+/** Turns one page, with the cue that shows which way it went. */
+function turnPage(nav: NavApi | null | undefined, dir: 1 | -1) {
+  cuePageTurn(dir);
+  if (dir > 0) nav?.next();
+  else nav?.prev();
+}
+
 export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }: Props) {
   const info = getFormatInfo(book.fileName);
   const kind = info?.kind ?? "unsupported";
@@ -187,7 +203,9 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
 
   // Keyboard focus inside the bars keeps them on screen (no invisible focus).
   const [chromeFocused, setChromeFocused] = useState(false);
-  const chrome = useImmersiveChrome(tab !== null || chromeFocused);
+  // While text is selected, the top bar carries the selection actions, so it stays on screen.
+  const selecting = selection !== null && Boolean(caps.annotations);
+  const chrome = useImmersiveChrome(tab !== null || chromeFocused || selecting);
   const safeReport = useSafeReport();
   const sheet = useBottomSheet();
   /** Accrues active reading time for the library stats strip. */
@@ -707,8 +725,10 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
     return hit;
   }, []);
 
-  // Deep link (?page=): jump once the engine installs its NavApi.
-  const initialPageRef = useRef(initialPage ?? null);
+  // Deep link (?page=): jump once the engine installs its NavApi. A deep hit (?page=&at=, with the
+  // query) already names its section and the place in it, so the section jump is left out: the two
+  // jumps race, and the section's start could be the one that lands last.
+  const initialPageRef = useRef(deepHitRef.current != null ? null : (initialPage ?? null));
   useEffect(() => {
     if (initialPageRef.current == null) return undefined;
     const controller = new AbortController();
@@ -721,6 +741,29 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       const target = initialPageRef.current;
       initialPageRef.current = null;
       navRef.current?.goToPage?.(target);
+    })();
+    return () => controller.abort();
+  }, [engineKey]);
+
+  // A search hit jumps once the engine installs its NavApi. The search tab can answer from the saved
+  // index as soon as the engine reports its capabilities, and that comes before the NavApi exists:
+  // a hit taken that early used to be dropped without a trace. It is held here and delivered when
+  // the engine is ready. The wait ends with the component or with the engine itself (engineKey).
+  const pendingHitRef = useRef<SearchHit | null>(null);
+  const jumpToHit = useCallback((hit: SearchHit) => {
+    if (navRef.current) navRef.current.goToHit?.(hit);
+    else pendingHitRef.current = hit;
+  }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      while (!controller.signal.aborted && !navRef.current) {
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      const hit = pendingHitRef.current;
+      if (controller.signal.aborted || !hit) return;
+      pendingHitRef.current = null;
+      navRef.current?.goToHit?.(hit);
     })();
     return () => controller.abort();
   }, [engineKey]);
@@ -764,13 +807,13 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         const flip = !!settings.manga && !!caps.rtl;
         const forwardKey = e.key === "ArrowRight" ? !flip : e.key === "ArrowLeft" ? flip : null;
 
-        if (forwardKey !== null) (forwardKey ? nav?.next : nav?.prev)?.();
-        else if (e.key === "PageDown") nav?.next();
-        else if (e.key === "PageUp") nav?.prev();
+        if (forwardKey !== null) turnPage(nav, forwardKey ? 1 : -1);
+        else if (e.key === "PageDown") turnPage(nav, 1);
+        else if (e.key === "PageUp") turnPage(nav, -1);
         else if (e.key === "Home") nav?.goToFraction?.(0);
         else if (e.key === "End") nav?.goToFraction?.(1);
-        else if (e.shiftKey) nav?.prev();
-        else nav?.next();
+        else if (e.shiftKey) turnPage(nav, -1);
+        else turnPage(nav, 1);
 
         chrome.keepHidden();
         return;
@@ -875,18 +918,72 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
   // Read-aloud only makes sense while this engine can hand us text.
   const ttsActive = !!caps.tts && tts.active;
 
-  // Center tap toggles chrome; edge taps are the engine's own business.
-  const handleSurfaceTap = (x: number) => {
+  // Taps. The outer thirds turn pages and the middle third shows or hides the bars (touch and
+  // pen only: a mouse click in the middle is for selecting text). Comics and DjVu turn their own
+  // pages, because their taps carry a delay or a zoom. A double tap toggles nothing: the bars wait
+  // a moment, and a second tap inside that moment cancels the toggle.
+  const turnsOwnPages = kind === "comic" || kind === "djvu";
+  const toggleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastToggleTap = useRef(-Infinity);
+  useEffect(
+    () => () => {
+      if (toggleTimer.current) clearTimeout(toggleTimer.current);
+    },
+    [],
+  );
+
+  const handleSurfaceTap = (fraction: number, pointerType: string) => {
     if (selection) {
       setSelection(null);
       return;
     }
     if (tab) return;
-    if (x > 0.3 && x < 0.7) chrome.toggle();
+    const action = tapAction(fraction, pointerType);
+    // Date.now() rather than performance.now(): taps from inside a book's frame arrive on
+    // another document's clock.
+    const now = Date.now();
+    if (action === "toggle") {
+      if (now - lastToggleTap.current < DOUBLE_TAP_WINDOW) {
+        // The second tap of a double tap: no toggle at all.
+        lastToggleTap.current = -Infinity;
+        if (toggleTimer.current) clearTimeout(toggleTimer.current);
+        toggleTimer.current = null;
+        return;
+      }
+      lastToggleTap.current = now;
+      if (toggleTimer.current) clearTimeout(toggleTimer.current);
+      toggleTimer.current = setTimeout(() => {
+        toggleTimer.current = null;
+        chrome.toggle();
+      }, DOUBLE_TAP_WINDOW);
+      return;
+    }
+    lastToggleTap.current = -Infinity;
+    if (toggleTimer.current) clearTimeout(toggleTimer.current);
+    toggleTimer.current = null;
+    if (turnsOwnPages || action === "none") return;
+    chrome.keepHidden();
+    turnPage(navRef.current, action === "back" ? -1 : 1);
   };
-  const onSurfacePointerDown = (e: React.PointerEvent) => {
+
+  const pressRef = useRef<PressStart | null>(null);
+  const onSurfacePointerDown = (e: React.PointerEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    handleSurfaceTap((e.clientX - rect.left) / rect.width);
+    pressRef.current = pressStart(e, rect.left, rect.top);
+  };
+  const onSurfacePointerUp = (e: React.PointerEvent<HTMLElement>) => {
+    const start = pressRef.current;
+    pressRef.current = null;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sel = window.getSelection();
+    const selected = !!sel && !sel.isCollapsed && sel.toString() !== "";
+    const fraction = tapFraction(
+      start,
+      { x: e.clientX - rect.left, y: e.clientY - rect.top, time: e.timeStamp },
+      rect.width,
+      selected,
+    );
+    if (fraction !== null) handleSurfaceTap(fraction, e.pointerType);
   };
 
   return (
@@ -898,7 +995,16 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       style={{ background: theme.bg, color: theme.ink, height: "100dvh" }}
     >
       {/* reading surface — full bleed, chrome floats over it */}
-      <main className="absolute inset-0" onPointerDown={onSurfacePointerDown}>
+      <main
+        data-reading-surface=""
+        className="absolute inset-0"
+        style={{ touchAction: "manipulation" }}
+        onPointerDown={onSurfacePointerDown}
+        onPointerUp={onSurfacePointerUp}
+        onPointerCancel={() => {
+          pressRef.current = null;
+        }}
+      >
         {error ? (
           <Fallback title="Couldn't open this file" body={error} book={book} file={localFile} />
         ) : Engine ? (
@@ -937,9 +1043,14 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         )}
       </main>
 
-      {/* A tap anywhere along the top edge brings the bars back. Without it the bars
-          came back only from a tap in the middle 40% of the screen. */}
+      {/* A strip along each edge brings its bar back: a tap, or with a mouse, moving onto it. */}
       <RevealBand
+        active={!chrome.visible && tab === null}
+        onReveal={chrome.show}
+        color={theme.ink}
+      />
+      <RevealBand
+        edge="bottom"
         active={!chrome.visible && tab === null}
         onReveal={chrome.show}
         color={theme.ink}
@@ -948,7 +1059,8 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
       {/* top chrome */}
       <header
         className={cn(
-          "absolute inset-x-0 top-0 z-20 flex h-14 items-center gap-1.5 border-b px-3 backdrop-blur-sm transition-transform duration-200 sm:gap-3 sm:px-5",
+          "absolute inset-x-0 top-0 z-20 border-b px-3 backdrop-blur-sm transition-transform duration-200 sm:px-5",
+          selecting ? "py-2" : "flex h-14 items-center gap-1.5 sm:gap-3",
           !chrome.visible && "-translate-y-full",
         )}
         onPointerDownCapture={chrome.show}
@@ -962,35 +1074,64 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         }}
         style={{ background: `${theme.bg}f2`, borderColor: theme.line }}
       >
-        <BackLink
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal pointer-fine:h-8 pointer-fine:w-8"
-          aria-label="Back to library"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </BackLink>
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm font-medium tracking-tight">{book.title}</h1>
-          <p
-            className="truncate font-mono text-[11px] tracking-[0.14em] uppercase"
-            style={{ color: theme.sub }}
-          >
-            {info?.label ?? book.format} · {book.author}
-          </p>
-        </div>
-        {showSafeReadingButton(info?.kind, safeReport) && <SafeReadingButton />}
-        {tabs.map((t) => {
-          const Icon = TAB_META[t].icon;
-          return (
-            <IconButton
-              key={t}
-              active={tab === t}
-              onClick={() => openTab(t)}
-              label={TAB_META[t].label}
+        {selecting && selection ? (
+          <>
+            {/* The title heading is kept for screen readers while the bar shows the actions. */}
+            <h1 className="sr-only">{book.title}</h1>
+            <SelectionBar
+              selection={selection}
+              existing={existing}
+              theme={theme}
+              onMark={(type, color) => void applyMark(type, color)}
+              onNote={(note, color) => void applyNote(note, color)}
+              onDelete={() => {
+                if (existing) void removeAnnotation(existing.id);
+                else setSelection(null);
+              }}
+              onDefine={
+                selection.text?.trim()
+                  ? () => {
+                      setDefine({ term: selection.text.trim(), rect: selection.rect });
+                      setSelection(null);
+                    }
+                  : undefined
+              }
+              onDismiss={() => setSelection(null)}
+            />
+          </>
+        ) : (
+          <>
+            <BackLink
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-signal pointer-fine:h-8 pointer-fine:w-8"
+              aria-label="Back to library"
             >
-              <Icon className="h-4 w-4" />
-            </IconButton>
-          );
-        })}
+              <ArrowLeft className="h-4 w-4" />
+            </BackLink>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-sm font-medium tracking-tight">{book.title}</h1>
+              <p
+                className="truncate font-mono text-[11px] tracking-[0.14em] uppercase"
+                style={{ color: theme.sub }}
+              >
+                {info?.label ?? book.format} · {book.author}
+              </p>
+            </div>
+            {showSafeReadingButton(info?.kind, safeReport) && <SafeReadingButton />}
+            {tabs.map((t) => {
+              const Icon = TAB_META[t].icon;
+              return (
+                <IconButton
+                  key={t}
+                  active={tab === t}
+                  onClick={() => openTab(t)}
+                  label={TAB_META[t].label}
+                >
+                  <Icon className="h-4 w-4" />
+                </IconButton>
+              );
+            })}
+          </>
+        )}
       </header>
 
       {/* bottom chrome — shape adapts to the engine */}
@@ -1011,7 +1152,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         }}
         style={{ background: `${theme.bg}f2`, borderColor: theme.line }}
       >
-        <IconButton onClick={() => navRef.current?.prev()} label="Previous page">
+        <IconButton onClick={() => turnPage(navRef.current, -1)} label="Previous page">
           <ChevronLeft className="h-4 w-4" />
         </IconButton>
 
@@ -1067,36 +1208,12 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
         <span role="status" className="sr-only">
           {spokenProgress}
         </span>
-        <IconButton onClick={() => navRef.current?.next()} label="Next page">
+        <IconButton onClick={() => turnPage(navRef.current, 1)} label="Next page">
           <ChevronRight className="h-4 w-4" />
         </IconButton>
       </nav>
 
       <ExternalLinkGuard />
-
-      {selection && caps.annotations && (
-        <SelectionPopover
-          selection={selection}
-          existing={existing}
-          theme={theme}
-          bookTitle={book.title}
-          onMark={(type, color) => void applyMark(type, color)}
-          onNote={(note, color) => void applyNote(note, color)}
-          onDelete={() => {
-            if (existing) void removeAnnotation(existing.id);
-            else setSelection(null);
-          }}
-          onDefine={
-            selection.text?.trim()
-              ? () => {
-                  setDefine({ term: selection.text.trim(), rect: selection.rect });
-                  setSelection(null);
-                }
-              : undefined
-          }
-          onDismiss={() => setSelection(null)}
-        />
-      )}
 
       {define && (
         <DefinitionCard
@@ -1201,7 +1318,7 @@ export function ReaderShell({ book, file, initialQuery, initialPage, initialAt }
           searchTakeDeepHit={takeDeepHit}
           onClearSearch={() => navRef.current?.clearSearch?.()}
           onJumpHit={(hit) => {
-            navRef.current?.goToHit?.(hit);
+            jumpToHit(hit);
             // A bottom sheet covers the page, so it steps aside once the jump is made.
             if (sheet) setTab(null);
           }}
@@ -1258,12 +1375,9 @@ function Fallback({
           >
             Download file
           </button>
-          <Link
-            to="/"
-            className="rounded-[3px] border border-current/20 px-4 py-2 text-sm font-medium"
-          >
+          <BackLink className="rounded-[3px] border border-current/20 px-4 py-2 text-sm font-medium">
             Back to library
-          </Link>
+          </BackLink>
         </div>
       </div>
     </div>

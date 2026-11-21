@@ -15,7 +15,7 @@ import { groupBySeries } from "@/lib/comicinfo";
 import { InstallBanner } from "@/components/library/install-banner";
 import { ThemeToggle } from "@/components/theme-control";
 
-import { ACCEPT_STRING, FORMATS, FORMAT_STRIP_ORDER } from "@/lib/formats";
+import { FORMATS, FORMAT_STRIP_ORDER } from "@/lib/formats";
 import { hitOffset, hitPage, searchLibrary, type LibraryBookResult } from "@/lib/library-search";
 import { indexShelfHeadless, type ShelfIndexStatus } from "@/lib/headless-index";
 import { SAMPLE_BOOKS } from "@/lib/samples";
@@ -404,11 +404,13 @@ function LibraryPage() {
         ingest(Array.from(e.dataTransfer.files));
       }}
     >
+      {/* No `accept` list on purpose. iPhone Safari greys out any file whose type it cannot match
+          to an extension in the list, so a CBZ or CBR that another app opens cannot be picked.
+          Import decides by file name and checks the first bytes, so a wrong file is still refused. */}
       <input
         ref={inputRef}
         type="file"
         multiple
-        accept={ACCEPT_STRING}
         className="hidden"
         onChange={(e) => {
           ingest(Array.from(e.target.files ?? []));
@@ -418,7 +420,7 @@ function LibraryPage() {
 
       <header className="sticky top-0 z-30 border-b border-border bg-background/85 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 py-4">
-          <Link to="/" className="flex items-end gap-2.5 text-foreground">
+          <Link to="/" replace className="flex items-end gap-2.5 text-foreground">
             <EviotaLogo className="h-6 w-auto sm:h-7" />
             {/* mb-1 puts the label on the wordmark's baseline at the sm:h-7 size
                 (JetBrains Mono: 1.54px baseline inset + 4px = 20% of 28px).
