@@ -82,20 +82,13 @@ npm run verify:static    # checks dist/ is a self-contained static site
 
 The app uses hash-based routes and relative URLs, so the built folder works from any address or sub-path.
 
-## Hosting on Cloudflare Workers
+## Hosting on GitHub Pages
 
-I host the site on Cloudflare Workers, on the free Workers plan. The Worker builds from this repository on GitHub, and `wrangler.jsonc` names only the static folder (`dist/`). You can host your own copy the same way, and the repository can stay private while you do.
+The live site is at https://misterwolverine321-ui.github.io/eviota-v1/. I publish it with GitHub Pages. Every push to `main` builds the site and runs the static-site check (`.github/workflows/pages.yml`). Only a build that passes is published, so the live site changes only after a passing build.
 
-Cloudflare Access puts a sign-in in front of the site, so that only your own email address can open it. Zero Trust, which Access needs, requires a payment method on file even on its free plan. Do not deploy until Access protects the address. The `workers.dev` address is open to anyone who has the link until then.
+The site has no sign-in and no server, because your books never leave your device. Anyone with the address can open it, and the code is public.
 
-1. Turn on Cloudflare Zero Trust for the account. It needs a payment method on file. Then create an Access application for the Worker's `workers.dev` address (the Worker is named `eviota`), allowing only your own email address.
-2. In Cloudflare, open **Workers & Pages → Create**, connect your GitHub account, and choose this repository.
-3. Set the production branch to `main`. Each push to that branch rebuilds and redeploys the site.
-4. Set the build command to `npm run build` and the deploy command to `npx wrangler deploy`.
-5. Add an environment variable `NODE_VERSION` with the value `22`.
-6. Save and deploy.
-7. In a private browser window, open the address. It should ask you to sign in before it shows the shelf. Only share the address once this check passes.
-8. For a custom domain later, add it to the Worker under its domain settings and let Cloudflare create the DNS records.
+To host your own copy, fork the repository, open **Settings → Pages**, choose **GitHub Actions** as the source, and push a change to `main`. The app uses hash-based routes and relative URLs, so it works from whatever address GitHub gives you.
 
 To install the app on a phone, open the address and use _Add to Home Screen_ (iPhone: Share → Add to Home Screen; Android: the browser's Install option). Each address has its own library. A library on one address or device does not appear on another, so use the backup file to move it.
 
